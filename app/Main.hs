@@ -15,7 +15,7 @@ main = toJSONFilter runAll
 
 runAll :: Block -> Block
 -- runAll  = fixBulletList . makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock
-runAll  =  methods . variants . header2 . cleanBlock
+runAll = methods . variants . header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div a (Header 1 emptyAttrs (title inlines) : bs)
@@ -99,10 +99,20 @@ variants x = x
 
 -- [Plain [Span ("",["emoji"],[]) [Str "\128300"],Str " ",Str "This",Str " ",Str "is",Str " ",Str "a",Str " ",Str "nightly-only",Str " ",Str "experimental",Str " ",Str "API.",Str " ",Str "(",Code ("",[],[]) "option_result_contains",Str "\160",Link ("",[],[]) [Str "#62358"] ("https://github.com/rust-lang/rust/issues/62358",""),Str ")"]]]
 
+mkNotice :: [Block] -> [Inline]
+mkNotice blocks = case blocks of
+  (Plain ins) : bs -> ins ++ mkNotice bs
+  (Para ins) : bs -> ins ++ mkNotice bs
+  (Div _ bs) : bs' -> (mkNotice bs) ++ mkNotice bs'
+  (Header _ _ ins) : bs -> ins ++ mkNotice bs
+  (b : bs) ->  mkNotice bs
+  [] -> []
+
 methods :: Block -> Block
 methods b = case b of
 
-  (Div (_, classnames, _) _) | elem "stability" classnames -> Null
+  (Div (_, classnames, _) blocks) | elem "stability" classnames -> Plain $ mkNotice blocks
+
   (Header 3 (_, [classname], _) (code : (Link _ _ (url, _)) : _)) | classname == "impl" -> Header 3 emptyAttrs [Link emptyAttrs [code] (url, "")]
   (Header l _ ins) -> Header l emptyAttrs $ foldr (\ x acc -> case x of
                                                        (Link _ [Str src] _) | src == "[src]"  -> acc
