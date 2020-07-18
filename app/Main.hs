@@ -18,7 +18,7 @@ runAll =
   fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock
 
 makeTitle :: Block -> Block
-makeTitle (Div a ((Header 0 _ inlines) : bs)) = Div
+makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
   a
   (Header 1 emptyAttrs (title inlines) : bs)
  where
@@ -224,7 +224,7 @@ flattenBlock b = case b of
       )
       blocks
   (Div _ blocks) -> Div emptyAttrs $ flattenBlocks blocks
-  x              -> x
+  _              -> b
 
 flattenBlocks :: [Block] -> [Block]
 flattenBlocks blocks = case blocks of
@@ -233,7 +233,7 @@ flattenBlocks blocks = case blocks of
  ((Plain ins) : (Para ins') : bs) -> Para (ins ++ ins') : flattenBlocks bs
  (Plain ins : bs) -> Plain ins : flattenBlocks bs
  (Para  ins : bs) -> Para ins : flattenBlocks bs
- (b:bs) -> b : flattenBlocks bs
+ (b:bs) -> flattenBlock b : flattenBlocks bs
  [] -> []
 
 
