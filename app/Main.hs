@@ -108,16 +108,8 @@ methods b = case b of
   _ -> b
 
 fixBulletList :: Block -> Block
-fixBulletList (BulletList blockslist) = BulletList $ map (map removeHeaders) blockslist
-  where removeHeaders (Div _ bs) = Div emptyAttrs $ map removeHeaders $ fixOrdering (last bs : init bs)
-        removeHeaders x = x
-
-        -- The standard parsing of a bulleted list throws stuff around and puts them out of order, so need to set things straight.
-        fixOrdering :: [Block] -> [Block]
-        fixOrdering [] = []
-        fixOrdering (Plain (string:_) : (Header _ _ texts) : xs) = Plain (string : texts) : fixOrdering xs
-        fixOrdering (b:bs) = b : fixOrdering bs
-
+fixBulletList (BulletList ([(Div _ bullet)] : bullets)) = fixBulletList $ BulletList (bullet : bullets)
+fixBulletList (BulletList (((Header _ _ bullet) : bs) : bullets)) = fixBulletList $ BulletList ( flattenBlocks (((head bs) : Plain bullet : (tail bs))) : bullets)
 fixBulletList x = x
 
 --Some functions have a "must_use" description that comes out quite ugly unless we do something about it.
