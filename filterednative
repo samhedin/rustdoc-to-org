@@ -7,7 +7,7 @@
 ,Null
 ,Div ("",[],[])
  [Header 1 ("",[],[]) [Str "Trait",Str " ",Link ("",[],[]) [Str "std"] ("../index.html",""),Str "::",Link ("",[],[]) [Str "convert"] ("index.html",""),Str "::",Link ("",[],[]) [Str "AsRef"] ("","")]
- ,Div ("",["docblock","type-decl","hidden-by-usual-hider"],[])
+ ,Div ("",[],[])
   [CodeBlock ("",["rust","trait"],[]) "pub trait AsRef<T> where\n\160\160\160\160T: ?Sized,\160{\n    fn as_ref(&self) -> &T;\n}"]
  ,Div ("",[],[])
   [Para [Str "Used",Str " ",Str "to",Str " ",Str "do",Str " ",Str "a",Str " ",Str "cheap",Str " ",Str "reference-to-reference",Str " ",Str "conversion."]
@@ -26,11 +26,11 @@
   ,Plain [Link ("",[],[]) [Str "Examples"] ("#examples","")]
   ,Para [Str "By",Str " ",Str "using",Str " ",Str "trait",Str " ",Str "bounds",Str " ",Str "we",Str " ",Str "can",Str " ",Str "accept",Str " ",Str "arguments",Str " ",Str "of",Str " ",Str "different",Str " ",Str "types",Str " ",Str "as",Str " ",Str "long",Str " ",Str "as",Str " ",Str "they",Str " ",Str "can",Str " ",Str "be",Str "converted",Str " ",Str "to",Str " ",Str "the",Str " ",Str "specified",Str " ",Str "type",Str " ",Code ("",[],[]) "T",Str "."]
   ,Para [Str "For",Str " ",Str "example:",Str " ",Str "By",Str " ",Str "creating",Str " ",Str "a",Str " ",Str "generic",Str " ",Str "function",Str " ",Str "that",Str " ",Str "takes",Str " ",Str "an",Str " ",Code ("",[],[]) "AsRef<str>",Str " ",Str "we",Str " ",Str "express",Str " ",Str "that",Str " ",Str "we",Str "want",Str " ",Str "to",Str " ",Str "accept",Str " ",Str "all",Str " ",Str "references",Str " ",Str "that",Str " ",Str "can",Str " ",Str "be",Str " ",Str "converted",Str " ",Str "to",Str " ",Link ("",[],[]) [Code ("",[],[]) "&str"] ("../../std/primitive.str.html",""),Str " ",Str "as",Str " ",Str "an",Str " ",Str "argument.",Str "Since",Str " ",Str "both",Str " ",Link ("",[],[]) [Code ("",[],[]) "String"] ("../../std/string/struct.String.html",""),Str " ",Str "and",Str " ",Link ("",[],[]) [Code ("",[],[]) "&str"] ("../../std/primitive.str.html",""),Str " ",Str "implement",Str " ",Code ("",[],[]) "AsRef<str>",Str " ",Str "we",Str " ",Str "can",Str " ",Str "accept",Str " ",Str "both",Str " ",Str "as",Str " ",Str "input",Str " ",Str "argument."]
-  ,Div ("",["example-wrap"],[])
+  ,Div ("",[],[])
    [CodeBlock ("",["rust","rust-example-rendered"],[]) "fn is_hello<T: AsRef<str>>(s: T) {\n   assert_eq!(\"hello\", s.as_ref());\n}\n\nlet s = \"hello\";\nis_hello(s);\n\nlet s = \"hello\".to_string();\nis_hello(s);"
    ,Null]]
  ,Header 2 ("required-methods",["small-section-header"],[]) [Str "Required",Str " ",Str "methods",Link ("",[],[]) [] ("#required-methods","")]
- ,Div ("",["methods"],[])
+ ,Div ("",[],[])
   [Header 3 ("tymethod.as_ref",["method"],[]) [Code ("as_ref.v",[],[]) "fn as_ref(&self) -> &T"]
   ,Div ("",[],[])
    [Para [Str "Performs",Str " ",Str "the",Str " ",Str "conversion."]]]
@@ -38,7 +38,7 @@
   [Header 4 ("",[],[]) []
   ,Plain [Span ("",[],[]) []]]
  ,Header 2 ("",[],[]) [Link ("",[],[]) [Str "Implementors"] ("#implementors","Implementors")]
- ,Div ("implementors-list",["item-list"],[])
+ ,Div ("",[],[])
   [Header 3 ("",[],[]) [Link ("",[],[]) [Code ("",["in-band"],[]) "impl AsRef<[u8]> for str"] ("#impl-AsRef%3C%5Bu8%5D%3E","")]
   ,Header 4 ("",[],[]) [Code ("as_ref.v-1",[],[]) "fn as_ref(&self) -> &[u8]"]
   ,Header 3 ("",[],[]) [Link ("",[],[]) [Code ("",["in-band"],[]) "impl AsRef<[u8]> for String"] ("#impl-AsRef%3C%5Bu8%5D%3E-1","")]
@@ -116,5 +116,5 @@
   ,Plain [Span ("",[],[]) []]]]
 ,Div ("",[],[])
  []
-,Div ("",["section","footer"],[])
+,Div ("",[],[])
  []]
