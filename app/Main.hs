@@ -80,10 +80,9 @@ cleanInlines x = foldr (\ x acc -> case x of
     (Link _ is target)  -> Link emptyAttrs (cleanInlines is) target : acc
     (Span attr is)  -> Span attr (cleanInlines is) : acc
     SoftBreak -> acc
-    Strong ins -> Strong $ cleanInlines ins
-    Emph -> Emph $ cleanInlines ins
-    Underline -> Underline $ cleanInlines ins
-    Strikeout -> Underline $ cleanInlines ins
+    (Strong ins) -> (Strong $ cleanInlines ins) : acc
+    (Emph ins) -> (Emph $ cleanInlines ins) : acc
+    (Strikeout ins) ->  (Strikeout $ cleanInlines ins) : acc
     _ -> x : acc) [] x
 
 variants :: Block -> Block
@@ -141,10 +140,13 @@ examples x = x
 
 flattenBlock :: Block -> Block
 flattenBlock b = case b of
-  (Div _ [Header l a ins]) -> Header l a ins
+  (Div _ [Header l a ins]) -> Header l a $ cleanInlines ins
+  (Div _ [Plain ins]) -> Plain $ cleanInlines ins
+  (Div _ [Para ins]) -> Para $ cleanInlines ins
+  (Div _ [CodeBlock a t]) -> CodeBlock a t
   (Div (_, names, _) blocks)
-      | "unstable" `elem` names -> Div emptyAttrs $ flattenBlocks $ walk (\x -> map (\case
-                                          (Header 4 _ ins) -> Para ins
+      | "unstable" `elem` names -> flattenBlock $ Div emptyAttrs $ flattenBlocks $ walk (\x -> map (\case
+                                          (Header 4 _ ins) -> Para $ cleanInlines ins
                                           x -> x) x) blocks
   (Div _ blocks) -> Div emptyAttrs $ flattenBlocks blocks
   x -> x

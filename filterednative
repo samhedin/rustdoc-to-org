@@ -7,8 +7,7 @@
 ,Null
 ,Div ("",[],[])
  [Header 1 ("",[],[]) [Str "Trait",Str " ",Link ("",[],[]) [Str "std"] ("../index.html",""),Str "::",Link ("",[],[]) [Str "convert"] ("index.html",""),Str "::",Link ("",[],[]) [Str "AsRef"] ("","")]
- ,Div ("",[],[])
-  [CodeBlock ("",["rust","trait"],[]) "pub trait AsRef<T> where\n\160\160\160\160T: ?Sized,\160{\n    fn as_ref(&self) -> &T;\n}"]
+ ,CodeBlock ("",["rust","trait"],[]) "pub trait AsRef<T> where\n\160\160\160\160T: ?Sized,\160{\n    fn as_ref(&self) -> &T;\n}"
  ,Div ("",[],[])
   [Para [Str "Used",Str " ",Str "to",Str " ",Str "do",Str " ",Str "a",Str " ",Str "cheap",Str " ",Str "reference-to-reference",Str " ",Str "conversion."]
   ,Para [Str "This",Str " ",Str "trait",Str " ",Str "is",Str " ",Str "similar",Str " ",Str "to",Str " ",Link ("",[],[]) [Code ("",[],[]) "AsMut"] ("../../std/convert/trait.AsMut.html","`AsMut`"),Str " ",Str "which",Str " ",Str "is",Str " ",Str "used",Str " ",Str "for",Str " ",Str "converting",Str " ",Str "between",Str " ",Str "mutable",Str " ",Str "references.",Str "If",Str " ",Str "you",Str " ",Str "need",Str " ",Str "to",Str " ",Str "do",Str " ",Str "a",Str " ",Str "costly",Str " ",Str "conversion",Str " ",Str "it",Str " ",Str "is",Str " ",Str "better",Str " ",Str "to",Str " ",Str "implement",Str " ",Link ("",[],[]) [Code ("",[],[]) "From"] ("../../std/convert/trait.From.html","`From`"),Str " ",Str "with",Str " ",Str "type",Code ("",[],[]) "&T",Str " ",Str "or",Str " ",Str "write",Str " ",Str "a",Str " ",Str "custom",Str " ",Str "function."]
@@ -18,7 +17,7 @@
      [Plain [Str "Unlike",Str " ",Code ("",[],[]) "AsRef",Str ",",Str " ",Link ("",[],[]) [Code ("",[],[]) "Borrow"] ("../../std/borrow/trait.Borrow.html",""),Str " ",Str "has",Str " ",Str "a",Str " ",Str "blanket",Str " ",Str "impl",Str " ",Str "for",Str " ",Str "any",Str " ",Code ("",[],[]) "T",Str ",",Str " ",Str "and",Str " ",Str "can",Str " ",Str "be",Str " ",Str "used",Str " ",Str "to",Str " ",Str "accept",Str " ",Str "either",Str "a",Str " ",Str "reference",Str " ",Str "or",Str " ",Str "a",Str " ",Str "value."]]]
    ,[Div ("",[],[])
      [Plain [Link ("",[],[]) [Code ("",[],[]) "Borrow"] ("../../std/borrow/trait.Borrow.html",""),Str " ",Str "also",Str " ",Str "requires",Str " ",Str "that",Str " ",Link ("",[],[]) [Code ("",[],[]) "Hash"] ("../../std/hash/trait.Hash.html",""),Str ",",Str " ",Link ("",[],[]) [Code ("",[],[]) "Eq"] ("../../std/cmp/trait.Eq.html",""),Str " ",Str "and",Str " ",Link ("",[],[]) [Code ("",[],[]) "Ord"] ("../../std/cmp/trait.Ord.html",""),Str " ",Str "for",Str " ",Str "borrowed",Str " ",Str "value",Str " ",Str "are",Str "equivalent",Str " ",Str "to",Str " ",Str "those",Str " ",Str "of",Str " ",Str "the",Str " ",Str "owned",Str " ",Str "value.",Str " ",Str "For",Str " ",Str "this",Str " ",Str "reason,",Str " ",Str "if",Str " ",Str "you",Str " ",Str "want",Str " ",Str "to",Str "borrow",Str " ",Str "only",Str " ",Str "a",Str " ",Str "single",Str " ",Str "field",Str " ",Str "of",Str " ",Str "a",Str " ",Str "struct",Str " ",Str "you",Str " ",Str "can",Str " ",Str "implement",Str " ",Code ("",[],[]) "AsRef",Str ",",Str " ",Str "but",Str " ",Str "not",Str " ",Link ("",[],[]) [Code ("",[],[]) "Borrow"] ("../../std/borrow/trait.Borrow.html",""),Str "."]]]]
-  ,Para [Strong [Str "Note:",Space,Str "This",Space,Str "trait",Space,Str "must",Space,Str "not",Space,Str "fail"],Str ".",Str " ",Str "If",Str " ",Str "the",Str " ",Str "conversion",Str " ",Str "can",Str " ",Str "fail,",Str " ",Str "use",Str " ",Str "a",Str "dedicated",Str " ",Str "method",Str " ",Str "which",Str " ",Str "returns",Str " ",Str "an",Str " ",Link ("",[],[]) [Code ("",[],[]) "Option<T>"] ("../../std/option/enum.Option.html",""),Str " ",Str "or",Str " ",Str "a",Str " ",Link ("",[],[]) [Code ("",[],[]) "Result<T, E>"] ("../../std/result/enum.Result.html",""),Str "."]
+  ,Para [Strong [Str "Note:",Str " ",Str "This",Str " ",Str "trait",Str " ",Str "must",Str " ",Str "not",Str " ",Str "fail"],Str ".",Str " ",Str "If",Str " ",Str "the",Str " ",Str "conversion",Str " ",Str "can",Str " ",Str "fail,",Str " ",Str "use",Str " ",Str "a",Str "dedicated",Str " ",Str "method",Str " ",Str "which",Str " ",Str "returns",Str " ",Str "an",Str " ",Link ("",[],[]) [Code ("",[],[]) "Option<T>"] ("../../std/option/enum.Option.html",""),Str " ",Str "or",Str " ",Str "a",Str " ",Link ("",[],[]) [Code ("",[],[]) "Result<T, E>"] ("../../std/result/enum.Result.html",""),Str "."]
   ,Plain [Link ("",[],[]) [Str "Generic",Str " ",Str "Implementations"] ("#generic-implementations","")]
   ,BulletList
    [[Div ("",[],[])
@@ -32,8 +31,7 @@
  ,Header 2 ("required-methods",["small-section-header"],[]) [Str "Required",Str " ",Str "methods",Link ("",[],[]) [] ("#required-methods","")]
  ,Div ("",[],[])
   [Header 3 ("tymethod.as_ref",["method"],[]) [Code ("as_ref.v",[],[]) "fn as_ref(&self) -> &T"]
-  ,Div ("",[],[])
-   [Para [Str "Performs",Str " ",Str "the",Str " ",Str "conversion."]]]
+  ,Para [Str "Performs",Str " ",Str "the",Str " ",Str "conversion."]]
  ,Div ("",[],[])
   [Header 4 ("",[],[]) []
   ,Plain [Span ("",[],[]) []]]
