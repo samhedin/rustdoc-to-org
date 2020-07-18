@@ -96,11 +96,9 @@ variants (Div (_,[_, section], _) xs)
 variants (Plain [Link _ _ (url, _), Code (id, _, _) code]) = Header 3 emptyAttrs [Code emptyAttrs code]
 variants x = x
 
-
--- [Plain [Span ("",["emoji"],[]) [Str "\128300"],Str " ",Str "This",Str " ",Str "is",Str " ",Str "a",Str " ",Str "nightly-only",Str " ",Str "experimental",Str " ",Str "API.",Str " ",Str "(",Code ("",[],[]) "option_result_contains",Str "\160",Link ("",[],[]) [Str "#62358"] ("https://github.com/rust-lang/rust/issues/62358",""),Str ")"]]]
-
+-- This makes [inline] of This is a nightly-only experimental API, so that it doesn't become a header.
 mkNotice :: [Block] -> [Inline]
-mkNotice blocks = foldr (\ x acc -> case x of
+mkNotice blocks = cleanInlines $ foldr (\ x acc -> case x of
   (Plain ins) -> ins ++ acc
   (Para ins) -> ins ++ acc
   (Div _ bs) -> (mkNotice bs) ++ acc
@@ -109,10 +107,10 @@ mkNotice blocks = foldr (\ x acc -> case x of
 
 methods :: Block -> Block
 methods b = case b of
-
   (Div (_, classnames, _) blocks) | elem "stability" classnames -> Plain $ mkNotice blocks
 
   (Header 3 (_, [classname], _) (code : (Link _ _ (url, _)) : _)) | classname == "impl" -> Header 3 emptyAttrs [Link emptyAttrs [code] (url, "")]
+
   (Header l _ ins) -> Header l emptyAttrs $ foldr (\ x acc -> case x of
                                                        (Link _ [Str src] _) | src == "[src]"  -> acc
                                                        (Link _ (Str bracket : _) _) | bracket == "[" -> acc
@@ -121,15 +119,15 @@ methods b = case b of
                                                        (Link _ desc (url, _)) | T.isInfixOf "#" url -> desc ++ acc
                                                        x -> x : acc) [] ins
 
-  -- (Plain [Span (_, [emoji], _) ins]) | emoji == "emoji" -> Para ins
   (Plain (hidden : methods)) -> Div emptyAttrs [Header 4 emptyAttrs $ cleanInlines methods ,  Plain $ fixMustUse hidden]
+
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
 
 fixBulletList :: Block -> Block
 fixBulletList (BulletList bullets) = BulletList
   $ foldr (\ x acc -> case x of
-              ((Div _ ((Header _ _ bullet) : bs)) : divs) -> flattenBlocks ((head bs) : Plain bullet : (tail bs)) : acc -- TODO notice that this is ignoring divs, may lead to missing elements in the future?
+              ((Div _ ((Header _ _ bullet) : bs)) : divs) -> flattenBlocks (head bs : Plain bullet : tail bs) : acc -- TODO notice that this is ignoring divs, may lead to missing elements in the future?
               _ -> x : acc) [] bullets
 fixBulletList x = x
 
@@ -138,8 +136,8 @@ fixMustUse :: Inline -> [Inline]
 fixMustUse inline = case inline of
   (Span _ ins) -> [Span emptyAttrs (foldr (\ x acc -> case x of
                                               (Str deleteMe)
-                                                | deleteMe == "#[must_use" -> acc
-                                                | deleteMe == "=" -> acc
+                                                | deleteMe == "#[must_use"
+                                                 || deleteMe == "=" -> acc
                                               SoftBreak -> acc
                                               (Str quote) | head (T.unpack quote) == '\"' -> Str (T.tail quote) : acc
                                               (Str endbracket) | ']' `elem` T.unpack endbracket -> Str (T.dropEnd 2 endbracket) : acc
@@ -166,11 +164,11 @@ flattenBlock b = case b of
   x -> x
 
 flattenBlocks :: [Block] -> [Block]
-flattenBlocks ((Plain ins) : (Plain ins') : bs) = (Plain $ cleanInlines (ins ++ ins')) : flattenBlocks bs
-flattenBlocks ((Para ins) : (Plain ins') : bs) = (Para $ cleanInlines (ins ++ ins')) : flattenBlocks bs
-flattenBlocks ((Plain ins) : (Para ins') : bs) = (Para $ cleanInlines (ins ++ ins')) : flattenBlocks bs
-flattenBlocks (Plain ins : bs) = (Plain $ cleanInlines ins) : flattenBlocks bs
-flattenBlocks (Para ins : bs) = (Para $ cleanInlines ins) : flattenBlocks bs
+flattenBlocks ((Plain ins) : (Plain ins') : bs) = Plain (cleanInlines (ins ++ ins')) : flattenBlocks bs
+flattenBlocks ((Para ins) : (Plain ins') : bs) = Para (cleanInlines (ins ++ ins')) : flattenBlocks bs
+flattenBlocks ((Plain ins) : (Para ins') : bs) = Para (cleanInlines (ins ++ ins')) : flattenBlocks bs
+flattenBlocks (Plain ins : bs) = Plain (cleanInlines ins) : flattenBlocks bs
+flattenBlocks (Para ins : bs) = Para (cleanInlines ins) : flattenBlocks bs
 flattenBlocks [] = []
 flattenBlocks x = x
 
