@@ -14,7 +14,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll = fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock
+runAll b = fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock $ b
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
@@ -69,8 +69,8 @@ cleanBlock block = case block of
     | name == "sidebar-title" || name == "test-arrow" -> Null
 
   (Header l _ ((Code _ desc) : ins)) | T.isInfixOf "must_use" desc -> Div emptyAttrs
-    [ Header l emptyAttrs (Code emptyAttrs (T.drop 1 (T.dropWhile (/= ']') desc)) :ins),
-      Plain $ fixMustUse (Str desc) ]
+    [ Header l emptyAttrs (Code emptyAttrs (T.drop 1 (T.dropWhile (/= ']') desc)) : ins),
+      Para [ Str desc ] ]
 
   (Div (tag, _, _) bs)
     | tag
