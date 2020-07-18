@@ -10,3 +10,9 @@ refresh_trait:
 native:
 	pandoc option.html -t native -o native
 	pandoc -f native native -o optionnative.org
+
+install:
+	stack install
+
+run_installed:
+	pandoc option.html --filter rustoc-to-org-exe -o option.org
