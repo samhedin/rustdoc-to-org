@@ -14,7 +14,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll  = fixBulletList . makeTitle . flattenBlock . methods . variants . header2 . cleanBlock
+runAll  = fixBulletList . makeTitle . flattenBlock . sections .  header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 0 _ inlines) : bs)) = Div
@@ -108,7 +108,7 @@ cleanInlines x = foldr
   (\x acc -> case x of
     Space              -> Str " " : acc
     LineBreak          -> Str " " : acc
-    (Link _ _ (url, _)) | url == "#required-methods" -> acc
+    (Link _ _ (url, _)) | url == "#required-sections" -> acc
     (Link _ (_ : (Span (_, [inner], _) _) : _) _) | inner == "inner" -> acc
     (Link _ is target) -> Link emptyAttrs (cleanInlines is) target : acc
     (Span _ []) -> acc
@@ -121,13 +121,6 @@ cleanInlines x = foldr
   )
   []
   x
-
-variants :: Block -> Block
-variants (Div (_, [_, section], _) xs) | section == "small-section-header" =
-  Div emptyAttrs xs
-variants (Plain [Link _ _ (url, _), Code (id, _, _) code]) =
-  Header 3 emptyAttrs [Code emptyAttrs code]
-variants x = x
 
 -- This makes [inline] of This is a nightly-only experimental API, so that it doesn't become a header.
 mkNotice :: [Block] -> [Inline]
@@ -142,8 +135,10 @@ mkNotice blocks = foldr
   []
   blocks
 
-methods :: Block -> Block
-methods b = case b of
+sections :: Block -> Block
+sections b = case b of
+  (Div (_, [_, section], _) xs) | section == "small-section-header" -> Div emptyAttrs xs
+  (Plain [Link _ _ (url, _), Code (id, _, _) code]) -> Header 3 emptyAttrs [Code emptyAttrs code]
   (Div (_, classnames, _) blocks) | "stability" `elem` classnames ->
     Plain $ mkNotice blocks
 
@@ -165,9 +160,9 @@ methods b = case b of
     []
     ins
 
-  (Plain (hidden : methods)) -> Div
+  (Plain (hidden : sections)) -> Div
     emptyAttrs
-    [Header 3 emptyAttrs  methods, Plain $ fixMustUse hidden]
+    [Header 3 emptyAttrs  sections, Plain $ fixMustUse hidden]
 
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
