@@ -14,7 +14,8 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll  = fixBulletList . makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock
+-- runAll  = fixBulletList . makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock
+runAll  =  methods . variants . header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div a (Header 1 emptyAttrs (title inlines) : bs)
@@ -95,10 +96,14 @@ variants (Div (_,[_, section], _) xs)
 variants (Plain [Link _ _ (url, _), Code (id, _, _) code]) = Header 3 emptyAttrs [Code emptyAttrs code]
 variants x = x
 
+
+-- [Plain [Span ("",["emoji"],[]) [Str "\128300"],Str " ",Str "This",Str " ",Str "is",Str " ",Str "a",Str " ",Str "nightly-only",Str " ",Str "experimental",Str " ",Str "API.",Str " ",Str "(",Code ("",[],[]) "option_result_contains",Str "\160",Link ("",[],[]) [Str "#62358"] ("https://github.com/rust-lang/rust/issues/62358",""),Str ")"]]]
+
 methods :: Block -> Block
 methods b = case b of
-  (Header 3 (_, [classname], _) (code : (Link _ _ (url, _)) : _)) | classname == "impl" -> Header 3 emptyAttrs [Link emptyAttrs [code] (url, "")]
 
+  (Div (_, classnames, _) _) | elem "stability" classnames -> Null
+  (Header 3 (_, [classname], _) (code : (Link _ _ (url, _)) : _)) | classname == "impl" -> Header 3 emptyAttrs [Link emptyAttrs [code] (url, "")]
   (Header l _ ins) -> Header l emptyAttrs $ foldr (\ x acc -> case x of
                                                        (Link _ [Str src] _) | src == "[src]"  -> acc
                                                        (Link _ (Str bracket : _) _) | bracket == "[" -> acc
@@ -107,14 +112,16 @@ methods b = case b of
                                                        (Link _ desc (url, _)) | T.isInfixOf "#" url -> desc ++ acc
                                                        x -> x : acc) [] ins
 
+  -- (Plain [Span (_, [emoji], _) ins]) | emoji == "emoji" -> Para ins
   (Plain (hidden : methods)) -> Div emptyAttrs [Header 4 emptyAttrs $ cleanInlines methods ,  Plain $ fixMustUse hidden]
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
 
 fixBulletList :: Block -> Block
-fixBulletList (BulletList bullets) = BulletList $ foldr (\ x acc -> case x of
-                                                              ((Div _ ((Header _ _ bullet) : bs)) : divs) -> flattenBlocks ((head bs) : Plain bullet : (tail bs)) : acc -- TODO notice that this is ignoring divs, may lead to missing elements in the future?
-                                                              _ -> x : acc) [] bullets
+fixBulletList (BulletList bullets) = BulletList
+  $ foldr (\ x acc -> case x of
+              ((Div _ ((Header _ _ bullet) : bs)) : divs) -> flattenBlocks ((head bs) : Plain bullet : (tail bs)) : acc -- TODO notice that this is ignoring divs, may lead to missing elements in the future?
+              _ -> x : acc) [] bullets
 fixBulletList x = x
 
 --Some functions have a "must_use" description that comes out quite ugly unless we do something about it.
