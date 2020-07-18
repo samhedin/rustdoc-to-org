@@ -14,7 +14,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll  = cleanBlock . fixBulletList . makeTitle . flattenBlock . methods . variants . header2 . cleanBlock
+runAll  = fixBulletList . makeTitle . flattenBlock . methods . variants . header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 0 _ inlines) : bs)) = Div
@@ -95,6 +95,10 @@ cleanBlock (Div _ [Header 4 _ [], Plain [Span _ []]]) = Null
 cleanBlock (Header 1 _ [Link _ [(Str examples)] target])
   | examples == "Examples" = Null
 cleanBlock (Header a attr ins) = Header a attr (cleanInlines ins)
+
+cleanBlock (Div attr blocks) = Div attr (map cleanBlock blocks)
+cleanBlock (BlockQuote blocks) = BlockQuote (map cleanBlock blocks)
+cleanBlock (BulletList blocklists) = BulletList $ map (map cleanBlock) blocklists
 cleanBlock x                   = x
 
 -- Amongst other things, removes some causes of unwanted linebreaks, for example space leads to linebreaks sometimes so it's replaced with Str " "
@@ -126,7 +130,7 @@ variants x = x
 
 -- This makes [inline] of This is a nightly-only experimental API, so that it doesn't become a header.
 mkNotice :: [Block] -> [Inline]
-mkNotice blocks = cleanInlines $ foldr
+mkNotice blocks = foldr
   (\x acc -> case x of
     (Plain ins     ) -> ins ++ acc
     (Para  ins     ) -> ins ++ acc
@@ -153,8 +157,8 @@ methods b = case b of
       (Link _ (Str bracket : _) _) | bracket == "[" -> acc
       (Span (_, [since], _) _) | since == "since" -> acc
       (Link _ [] (url, _)) | T.isInfixOf "#" url -> acc
-      (Link _ desc (url, _)) | T.isInfixOf "#" url -> cleanInlines desc ++ acc
-      (Span attr ins) -> Span attr (cleanInlines ins) : acc
+      (Link _ desc (url, _)) | T.isInfixOf "#" url -> desc ++ acc
+      (Span attr ins) -> Span attr ins : acc
       x -> x : acc
     )
     []
@@ -162,7 +166,7 @@ methods b = case b of
 
   (Plain (hidden : methods)) -> Div
     emptyAttrs
-    [Header 3 emptyAttrs $ cleanInlines methods, Plain $ fixMustUse hidden]
+    [Header 3 emptyAttrs  methods, Plain $ fixMustUse hidden]
 
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
@@ -203,15 +207,15 @@ fixMustUse inline = case inline of
 flattenBlock :: Block -> Block
 flattenBlock b = case b of
   (Div _ ((Div a b) : bs)) -> flattenBlock $ Div a (b ++ bs)
-  (Div _ [Header l a ins]) -> Header l a $ cleanInlines ins
-  (Div _ [Plain ins     ]) -> Plain $ cleanInlines ins
-  (Div _ [Para  ins     ]) -> Para $ cleanInlines ins
+  (Div _ [Header l a ins]) -> Header l a  ins
+  (Div _ [Plain ins     ]) -> Plain  ins
+  (Div _ [Para  ins     ]) -> Para  ins
   (Div _ [CodeBlock a t ]) -> CodeBlock a t
   (Div (_, names, _) blocks) | "unstable" `elem` names ->
     flattenBlock $ Div emptyAttrs $ flattenBlocks $ walk
       (\x -> map
         (\case
-          (Header 4 _ ins) -> Para $ cleanInlines ins
+          (Header 4 _ ins) -> Para  ins
           x                -> x
         )
         x
