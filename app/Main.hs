@@ -14,8 +14,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
--- runAll  = fixBulletList . makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock
-runAll = methods . variants . header2 . cleanBlock
+runAll  = fixBulletList . makeTitle . flattenBlock . methods . variants . header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
@@ -92,7 +91,7 @@ cleanBlock (Header 1 _ [Link _ [(Str examples)] target])
 cleanBlock (Header a attr ins) = Header a attr (cleanInlines ins)
 cleanBlock x                   = x
 
--- Remove some causes of unwanted linebreaks
+-- Amongst other things, removes some causes of unwanted linebreaks, for example space leads to linebreaks sometimes so it's replaced with Str " "
 cleanInlines :: [Inline] -> [Inline]
 cleanInlines x = foldr
   (\x acc -> case x of
@@ -101,6 +100,7 @@ cleanInlines x = foldr
     (Link _ _ (url, _)) | url == "#required-methods" -> acc
     (Link _ (_ : (Span (_, [inner], _) _) : _) _) | inner == "inner" -> acc
     (Link _ is target) -> Link emptyAttrs (cleanInlines is) target : acc
+    (Span _ []) -> acc
     (Span attr is    ) -> Span attr (cleanInlines is) : acc
     SoftBreak          -> acc
     (Strong    ins)    -> Strong (cleanInlines ins) : acc
@@ -147,7 +147,8 @@ methods b = case b of
       (Link _ (Str bracket : _) _) | bracket == "[" -> acc
       (Span (_, [since], _) _) | since == "since" -> acc
       (Link _ [] (url, _)) | T.isInfixOf "#" url -> acc
-      (Link _ desc (url, _)) | T.isInfixOf "#" url -> desc ++ acc
+      (Link _ desc (url, _)) | T.isInfixOf "#" url -> cleanInlines desc ++ acc
+      (Span attr ins) -> Span attr (cleanInlines ins) : acc
       x -> x : acc
     )
     []
@@ -192,11 +193,6 @@ fixMustUse inline = case inline of
         )
     ]
   _ -> [inline]
-
-examples :: Block -> Block
-examples (Header 1 (_, [sectionHeader], _) ins)
-  | sectionHeader == "section-header" = Plain ins
-examples x = x
 
 flattenBlock :: Block -> Block
 flattenBlock b = case b of
