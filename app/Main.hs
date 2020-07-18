@@ -68,7 +68,9 @@ cleanBlock block = case block of
   (Plain ((Link (_, [name], _) _ _) : _))
     | name == "sidebar-title" || name == "test-arrow" -> Null
 
-  (Header l _ ((Code _ desc) : ins)) | T.isInfixOf "must_use" desc -> Header l emptyAttrs (Code emptyAttrs (T.drop 1 (T.dropWhile (/= ']') desc)) : ins)
+  (Header l _ ((Code _ desc) : ins)) | T.isInfixOf "must_use" desc -> Div emptyAttrs
+    [ Header l emptyAttrs (Code emptyAttrs (T.drop 1 (T.dropWhile (/= ']') desc)) :ins),
+      Plain $ fixMustUse (Str desc) ]
 
   (Div (tag, _, _) bs)
     | tag
