@@ -107,9 +107,16 @@ methods b = case b of
 
   _ -> b
 
+-- fixBulletList :: Block -> Block
+-- fixBulletList (BulletList ([(Div _ bullet)] : bullets)) = fixBulletList $ BulletList (bullet : bullets)
+-- fixBulletList (BulletList (((Header _ _ bullet) : bs) : bullets)) =  BulletList ( flattenBlocks (((head bs) : Plain bullet : (tail bs))) : bullets)
+-- fixBulletList x = x
+
 fixBulletList :: Block -> Block
-fixBulletList (BulletList ([(Div _ bullet)] : bullets)) = fixBulletList $ BulletList (bullet : bullets)
-fixBulletList (BulletList (((Header _ _ bullet) : bs) : bullets)) = fixBulletList $ BulletList ( flattenBlocks (((head bs) : Plain bullet : (tail bs))) : bullets)
+-- fixBulletList (BulletList ([(Div _ bullet)] : bullets)) = fixBulletList $ BulletList (bullet : bullets)
+fixBulletList (BulletList bullets) = BulletList $ foldr (\ x acc -> case x of
+                                                              [(Div _ ((Header _ _ bullet) : bs))] -> flattenBlocks ((head bs) : Plain bullet : (tail bs)) : acc
+                                                              _ -> x : acc) [] bullets
 fixBulletList x = x
 
 --Some functions have a "must_use" description that comes out quite ugly unless we do something about it.
