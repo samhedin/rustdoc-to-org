@@ -36,71 +36,71 @@ makeTitle x = x
 
 -- cleanBlock removes things like the sidebar
 cleanBlock :: Block -> Block
-cleanBlock (Div (_, [classname], _) _)
-  | classname
-    == "shortcuts"
-    || classname
-    == "sidebar-elems"
-    || classname
-    == "theme-picker"
-    || classname
-    == "infos"
-    || classname
-    == "search-container"
-    || classname
-    == "sidebar-menu"
-    || classname
-    == "logo-container"
-    || classname
-    == "toggle-wrapper"
-  = Null
-
-cleanBlock (Div (_, classname : _, _) _) | classname == "toggle-wrapper" = Null
-
-cleanBlock (Plain ((Link (_, [name], _) _ _) : _))
-  | name == "sidebar-title" || name == "test-arrow" = Null
-
-cleanBlock (Div (tag, _, _) bs)
-  | tag
-    == "main"
-    || tag
-    == "search"
-    || tag
-    == "imlementation-list"
-    || tag
-    == "synthetic-implementation-list"
-    || tag
-    == "blanket-implementation-list"
-  = Div emptyAttrs $ map cleanBlock bs
-
-cleanBlock (Plain inlines) = Plain $ cleanInlines $ filter
-  (\case
-    (Link (_, [classname], _) _ _)
-      | classname == "srclink" || classname == "collapse" -> False
-
-    _ -> True
-  )
-  inlines
-
 cleanBlock block = case block of
-     (Header 1 (panics, _, _) ins)
-        | T.isPrefixOf "panics" panics -> Plain $ cleanInlines ins
+  (Div (_, [classname], _) _)
+    | classname
+      == "shortcuts"
+      || classname
+      == "sidebar-elems"
+      || classname
+      == "theme-picker"
+      || classname
+      == "infos"
+      || classname
+      == "search-container"
+      || classname
+      == "sidebar-menu"
+      || classname
+      == "logo-container"
+      || classname
+      == "toggle-wrapper"
+      -> Null
 
-     (Div _ ((Header 3 ("",[],[]) []) : bs)) -> Div emptyAttrs bs
+  (Div (_, classname : _, _) _) | classname == "toggle-wrapper" -> Null
 
-     (Header 1 _ [Str panics]) | panics == "Panics" -> Null
-     (Para ins                ) -> Para $ cleanInlines ins
-     (Header 4 attr [Code _ _]) -> Null
-     (Header _ _    []        ) -> Null
-     (Div _ [Header 4 _ [], Plain [Span _ []]]) -> Null
-     (Header 1 _ [Link _ [(Str examples)] target])
-        | examples == "Examples" -> Null
-     (Header a attr ins) -> Header a attr (cleanInlines ins)
+  (Plain ((Link (_, [name], _) _ _) : _))
+    | name == "sidebar-title" || name == "test-arrow" -> Null
 
-     (Div attr blocks) -> Div attr (map cleanBlock blocks)
-     (BlockQuote blocks) -> BlockQuote (map cleanBlock blocks)
-     (BulletList blocklists) -> BulletList $ map (map cleanBlock) blocklists
-     _                   -> block
+  (Div (tag, _, _) bs)
+    | tag
+      == "main"
+      || tag
+      == "search"
+      || tag
+      == "imlementation-list"
+      || tag
+      == "synthetic-implementation-list"
+      || tag
+      == "blanket-implementation-list"
+    -> Div emptyAttrs $ map cleanBlock bs
+  (Plain [Link _ [Str panics] _]) | panics == "Panics" -> Null
+  (Plain inlines) -> Plain $ cleanInlines $ filter
+    (\case
+      (Link (_, [classname], _) _ _)
+        | classname == "srclink" || classname == "collapse" -> False
+
+      _ -> True
+    )
+    inlines
+
+  (Header 1 (panics, _, _) ins)
+    | T.isPrefixOf "panics" panics -> Plain $ cleanInlines ins
+
+  (Div _ ((Header 3 ("",[],[]) []) : bs)) -> Div emptyAttrs bs
+  (Header 1 _ [Str panics]) | panics == "Panics" -> Null
+  (Para ins                ) -> Para $ cleanInlines ins
+  (Header 4 attr [Code _ _]) -> Null
+  (Header _ _    []        ) -> Null
+  (Div _ [Header 4 _ [], Plain [Span _ []]]) -> Null
+  (Header 1 _ [Link _ [(Str examples)] target])
+    | examples == "Examples" -> Null
+  (Header a attr ins) -> Header a attr (cleanInlines ins)
+
+  (Div attr blocks) -> Div attr (map cleanBlock blocks)
+  (BlockQuote blocks) -> BlockQuote (map cleanBlock blocks)
+  (BulletList blocklists) -> BulletList $ map (map cleanBlock) blocklists
+
+  _                   -> block
 
 -- Amongst other things, removes some causes of unwanted linebreaks, for example space leads to linebreaks sometimes so it's replaced with Str " "
 cleanInlines :: [Inline] -> [Inline]
