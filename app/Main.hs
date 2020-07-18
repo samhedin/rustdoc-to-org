@@ -14,7 +14,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll = fixBulletList . makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock
+runAll  = fixBulletList . makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div a (Header 1 emptyAttrs (title inlines) : bs)
@@ -71,7 +71,7 @@ cleanBlock (Header 4 attr [Code _ _]) = Null
 cleanBlock (Header _ _ []) = Null
 cleanBlock (Div _ [Header 4 _ [], Plain [Span _ []]]) = Null
 cleanBlock (Header 1 _ [Link _ [(Str examples)] target]) | examples == "Examples" = Null
-cleanBlock (Header a _ ins) = Header a emptyAttrs (cleanInlines ins)
+cleanBlock (Header a attr ins) = Header a attr (cleanInlines ins)
 cleanBlock x = x
 
 -- Remove some causes of unwanted linebreaks
@@ -137,6 +137,7 @@ examples x = x
 
 flattenBlock :: Block -> Block
 flattenBlock b = case b of
+  (Div _ ((Div a b) : bs)) -> flattenBlock $ Div a (b ++ bs)
   (Div _ [Header l a ins]) -> Header l a $ cleanInlines ins
   (Div _ [Plain ins]) -> Plain $ cleanInlines ins
   (Div _ [Para ins]) -> Para $ cleanInlines ins
