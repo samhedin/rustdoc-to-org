@@ -34,7 +34,7 @@ makeTitle (Div a ((Header 0 _ inlines) : bs)) = Div
   title []       = []
 makeTitle x = x
 
--- cleanBlock removes things like the sidebar
+-- cleanBlock removes things like the sidebar, and calls cleanInlines to remove whitespace and more
 cleanBlock :: Block -> Block
 cleanBlock block = case block of
   (Div (_, [classname], _) _)
@@ -167,6 +167,7 @@ sections b = case b of
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
 
+--Bulletlist become super strange when imported. For example, the first word becomes last in the list so we have to take it and put it in the front.
 fixBulletList :: Block -> Block
 fixBulletList (BulletList bullets) = BulletList $ foldr
   (\x acc -> case x of
