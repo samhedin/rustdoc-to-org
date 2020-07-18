@@ -146,26 +146,28 @@ sections b = case b of
     | classname == "impl" -> Header 2
                                     emptyAttrs
                                     [Link emptyAttrs [code] (url, "")]
+  (Header 1 _ ins) -> Header 1 emptyAttrs $ foldInlines ins
 
-  (Header l _ ins) -> Header (l - 1) emptyAttrs $ foldr
-    (\x acc -> case x of
-      (Link _ [Str src] _) | src == "[src]" -> acc
-      (Link _ (Str bracket : _) _) | bracket == "[" -> acc
-      (Span (_, [since], _) _) | since == "since" -> acc
-      (Link _ [] (url, _)) | T.isInfixOf "#" url -> acc
-      (Link _ desc (url, _)) | T.isInfixOf "#" url -> desc ++ acc
-      (Span attr ins) -> Span attr ins : acc
-      x -> x : acc
-    )
-    []
-    ins
-
+  (Header l _ ins) -> Header (l - 1) emptyAttrs $ foldInlines ins
   (Plain (hidden : sections)) -> Div
     emptyAttrs
     [Header 3 emptyAttrs  sections, Plain $ fixMustUse hidden]
 
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
+
+  where foldInlines ins = foldr (\ x acc -> case x of
+                                  (Link _ [Str src] _) | src == "[src]" -> acc
+                                  (Link _ (Str bracket : _) _) | bracket == "[" -> acc
+                                  (Span (_, [since], _) _) | since == "since" -> acc
+                                  (Link _ [] (url, _)) | T.isInfixOf "#" url -> acc
+                                  (Link _ desc (url, _)) | T.isInfixOf "#" url -> desc ++ acc
+                                  (Span attr ins) -> Span attr ins : acc
+                                  x -> x : acc
+                                )
+                                []
+                                ins
+
 
 --Bulletlist become super strange when imported. For example, the first word becomes last in the list so we have to take it and put it in the front.
 fixBulletList :: Block -> Block
