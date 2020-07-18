@@ -120,7 +120,7 @@ variants :: Block -> Block
 variants (Div (_, [_, section], _) xs) | section == "small-section-header" =
   Div emptyAttrs xs
 variants (Plain [Link _ _ (url, _), Code (id, _, _) code]) =
-  Header 3 emptyAttrs [Code emptyAttrs code]
+  Header 2 emptyAttrs [Code emptyAttrs code]
 variants x = x
 
 -- This makes [inline] of This is a nightly-only experimental API, so that it doesn't become a header.
@@ -142,7 +142,7 @@ methods b = case b of
     Plain $ mkNotice blocks
 
   (Header 3 (_, [classname], _) (code : (Link _ _ (url, _)) : _))
-    | classname == "impl" -> Header 3
+    | classname == "impl" -> Header 2
                                     emptyAttrs
                                     [Link emptyAttrs [code] (url, "")]
 
@@ -161,7 +161,7 @@ methods b = case b of
 
   (Plain (hidden : methods)) -> Div
     emptyAttrs
-    [Header 4 emptyAttrs $ cleanInlines methods, Plain $ fixMustUse hidden]
+    [Header 3 emptyAttrs $ cleanInlines methods, Plain $ fixMustUse hidden]
 
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
@@ -235,5 +235,5 @@ flattenBlocks x                = x
 --Link Attr [Inline] Target
 header2 :: Block -> Block
 header2 (Header 2 _ ((Str name) : Link _ _ (url, _) : inlines)) =
-  Header 2 emptyAttrs [Link emptyAttrs [Str name] (url, name)]
+  Header 1 emptyAttrs [Link emptyAttrs [Str name] (url, name)]
 header2 a = a
