@@ -14,7 +14,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll  =  fixBulletList . makeTitle . flattenBlock . methods . variants . header2 . cleanBlock
+runAll  = cleanBlock . fixBulletList . makeTitle . flattenBlock . methods . variants . header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 0 _ inlines) : bs)) = Div
@@ -84,6 +84,8 @@ cleanBlock (Plain inlines) = Plain $ cleanInlines $ filter
 
 cleanBlock (Header 1 (panics, _, _) ins)
   | T.isPrefixOf "panics" panics = Plain $ cleanInlines ins
+
+cleanBlock (Div _ ((Header 3 ("",[],[]) []) : bs)) = Div emptyAttrs bs
 
 cleanBlock (Header 1 _ [Str panics]) | panics == "Panics" = Null
 cleanBlock (Para ins                ) = Para $ cleanInlines ins
@@ -231,7 +233,6 @@ flattenBlocks []               = []
 flattenBlocks x                = x
 
 
---Link Attr [Inline] Target
 header2 :: Block -> Block
 header2 (Header 2 _ ((Str name) : Link _ _ (url, _) : inlines)) =
   Header 2 emptyAttrs [Link emptyAttrs [Str name] (url, name)]

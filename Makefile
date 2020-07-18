@@ -16,3 +16,9 @@ install:
 
 run_installed:
 	pandoc option.html --filter rustoc-to-org-exe -o option.org
+
+refresh_all:
+	pandoc option.html -t json | stack run | pandoc -f json -t native -o filterednative
+	pandoc -f native filterednative -o option.org
+	pandoc trait.AsRef.html -t json | stack run | pandoc -f json -t native -o filterednative
+	pandoc -f native filterednative -o AsRef.org
