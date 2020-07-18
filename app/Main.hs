@@ -68,6 +68,8 @@ cleanBlock block = case block of
   (Plain ((Link (_, [name], _) _ _) : _))
     | name == "sidebar-title" || name == "test-arrow" -> Null
 
+  (Header l _ ((Code _ desc) : ins)) | T.isInfixOf "must_use" desc -> Header l emptyAttrs (Code emptyAttrs (T.drop 1 (T.dropWhile (/= ']') desc)) : ins)
+
   (Div (tag, _, _) bs)
     | tag
       == "main"
@@ -171,6 +173,7 @@ sections b = case b of
       (Span (_, [since], _) _) | since == "since"   -> acc
       (Link _ [] (url, _)) | T.isInfixOf "#" url    -> acc
       (Link _ desc (url, _)) | T.isInfixOf "#" url  -> desc ++ acc
+      (Code _ desc) | T.isPrefixOf "#[must_use]" desc -> Code emptyAttrs desc : acc
       (Span attr ins)                               -> Span attr ins : acc
       x                                             -> x : acc
     )
