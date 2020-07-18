@@ -14,8 +14,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll =
-  fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock
+runAll = fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
@@ -23,17 +22,23 @@ makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
   (Header 1 emptyAttrs (title inlines) : bs)
  where
   title :: [Inline] -> [Inline]
-  title ((Span (_, [inband], _) titlestrs) : is) | inband == "in-band" = foldr
-    (\x acc -> case x of
-      (Str t1    ) -> Str t1 : acc
-      (Link _ s t) -> Link emptyAttrs s t : acc
-      _            -> acc
-    )
-    []
-    titlestrs
+  title ((Span (_, [inband], _) titlestrs) : is)
+    | inband == "in-band" =
+      let (titl, doclink) = foldl
+            (\acc x -> case x of
+              (Str t1    ) -> (fst acc ++ [ Str t1 ], snd acc)
+              (Link _ s t) -> (fst acc ++ s, Link emptyAttrs s t)
+              _            -> acc
+            )
+            ([], Link emptyAttrs [] ("","")) titlestrs in --this might feel unnecessary, but for some reason org mode did not deal with links properly in the title so I had to remove all but the last.
+         init titl ++ [ doclink ]
+
   title (_ : is) = title is
   title []       = []
 makeTitle x = x
+
+-- Link Attr [Inline] Target
+
 
 -- cleanBlock removes things like the sidebar, and calls cleanInlines to remove whitespace and more
 cleanBlock :: Block -> Block
@@ -58,6 +63,7 @@ cleanBlock block = case block of
     -> Null
 
   (Div (_, classname : _, _) _) | classname == "toggle-wrapper" -> Null
+  (Para [Link _ [] _]) -> Null
 
   (Plain ((Link (_, [name], _) _ _) : _))
     | name == "sidebar-title" || name == "test-arrow" -> Null
