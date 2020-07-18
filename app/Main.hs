@@ -14,7 +14,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll = fixBulletList .  makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock
+runAll = fixBulletList . makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div a (Header 1 emptyAttrs (title inlines) : bs)
@@ -68,7 +68,10 @@ cleanBlock (Plain inlines) = Plain $ cleanInlines $ filter (\case
 
 cleanBlock (Para ins) = Para $ cleanInlines ins
 cleanBlock (Header 4 attr [Code _ _]) = Null
-cleanBlock (Header a attr ins) = Header a attr (cleanInlines ins)
+cleanBlock (Header _ _ []) = Null
+cleanBlock (Div _ [Header 4 _ [], Plain [Span _ []]]) = Null
+cleanBlock (Header 1 _ [Link _ [(Str examples)] target]) | examples == "Examples" = Null
+cleanBlock (Header a _ ins) = Header a emptyAttrs (cleanInlines ins)
 cleanBlock x = x
 
 -- Remove some causes of unwanted linebreaks
@@ -76,6 +79,7 @@ cleanInlines :: [Inline] -> [Inline]
 cleanInlines x = foldr (\ x acc -> case x of
     Space -> Str " " : acc
     LineBreak -> Str " " : acc
+    (Link _ _ (url, _)) | url == "#required-methods" -> acc
     (Link _ (_ : (Span (_, [inner], _) _) : _) _) | inner == "inner" -> acc
     (Link _ is target)  -> Link emptyAttrs (cleanInlines is) target : acc
     (Span attr is)  -> Span attr (cleanInlines is) : acc
@@ -95,27 +99,21 @@ methods :: Block -> Block
 methods b = case b of
   (Header 3 (_, [classname], _) (code : (Link _ _ (url, _)) : _)) | classname == "impl" -> Header 3 emptyAttrs [Link emptyAttrs [code] (url, "")]
 
-  (Header 4 _ ins) -> Header 4 emptyAttrs $ filter (\case
-                                                       (Link _ [Str src] _) | src == "[src]" -> False
-                                                       (Link _ (Str bracket : _) _) | bracket == "[" -> False
-                                                       (Span (_, [since], _) _) | since == "since" -> False
-                                                       x -> True) ins
+  (Header l _ ins) -> Header l emptyAttrs $ foldr (\ x acc -> case x of
+                                                       (Link _ [Str src] _) | src == "[src]"  -> acc
+                                                       (Link _ (Str bracket : _) _) | bracket == "[" -> acc
+                                                       (Span (_, [since], _) _) | since == "since" -> acc
+                                                       (Link _ [] (url, _)) | T.isInfixOf "#" url ->  acc
+                                                       (Link _ desc (url, _)) | T.isInfixOf "#" url -> desc ++ acc
+                                                       x -> x : acc) [] ins
 
   (Plain (hidden : methods)) -> Div emptyAttrs [Header 4 emptyAttrs $ cleanInlines methods ,  Plain $ fixMustUse hidden]
-
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
-
   _ -> b
 
--- fixBulletList :: Block -> Block
--- fixBulletList (BulletList ([(Div _ bullet)] : bullets)) = fixBulletList $ BulletList (bullet : bullets)
--- fixBulletList (BulletList (((Header _ _ bullet) : bs) : bullets)) =  BulletList ( flattenBlocks (((head bs) : Plain bullet : (tail bs))) : bullets)
--- fixBulletList x = x
-
 fixBulletList :: Block -> Block
--- fixBulletList (BulletList ([(Div _ bullet)] : bullets)) = fixBulletList $ BulletList (bullet : bullets)
 fixBulletList (BulletList bullets) = BulletList $ foldr (\ x acc -> case x of
-                                                              [(Div _ ((Header _ _ bullet) : bs))] -> flattenBlocks ((head bs) : Plain bullet : (tail bs)) : acc
+                                                              ((Div _ ((Header _ _ bullet) : bs)) : divs) -> flattenBlocks ((head bs) : Plain bullet : (tail bs)) : acc -- TODO notice that this is ignoring divs, may lead to missing elements in the future?
                                                               _ -> x : acc) [] bullets
 fixBulletList x = x
 
