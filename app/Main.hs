@@ -120,7 +120,7 @@ variants :: Block -> Block
 variants (Div (_, [_, section], _) xs) | section == "small-section-header" =
   Div emptyAttrs xs
 variants (Plain [Link _ _ (url, _), Code (id, _, _) code]) =
-  Header 2 emptyAttrs [Code emptyAttrs code]
+  Header 3 emptyAttrs [Code emptyAttrs code]
 variants x = x
 
 -- This makes [inline] of This is a nightly-only experimental API, so that it doesn't become a header.
@@ -146,7 +146,7 @@ methods b = case b of
                                     emptyAttrs
                                     [Link emptyAttrs [code] (url, "")]
 
-  (Header l _ ins) -> Header l emptyAttrs $ foldr
+  (Header l _ ins) -> Header (l - 1) emptyAttrs $ foldr
     (\x acc -> case x of
       (Link _ [Str src] _) | src == "[src]" -> acc
       (Link _ (Str bracket : _) _) | bracket == "[" -> acc
@@ -235,5 +235,5 @@ flattenBlocks x                = x
 --Link Attr [Inline] Target
 header2 :: Block -> Block
 header2 (Header 2 _ ((Str name) : Link _ _ (url, _) : inlines)) =
-  Header 1 emptyAttrs [Link emptyAttrs [Str name] (url, name)]
+  Header 2 emptyAttrs [Link emptyAttrs [Str name] (url, name)]
 header2 a = a
