@@ -82,24 +82,25 @@ cleanBlock (Plain inlines) = Plain $ cleanInlines $ filter
   )
   inlines
 
-cleanBlock (Header 1 (panics, _, _) ins)
-  | T.isPrefixOf "panics" panics = Plain $ cleanInlines ins
+cleanBlock block = case block of
+     (Header 1 (panics, _, _) ins)
+        | T.isPrefixOf "panics" panics -> Plain $ cleanInlines ins
 
-cleanBlock (Div _ ((Header 3 ("",[],[]) []) : bs)) = Div emptyAttrs bs
+     (Div _ ((Header 3 ("",[],[]) []) : bs)) -> Div emptyAttrs bs
 
-cleanBlock (Header 1 _ [Str panics]) | panics == "Panics" = Null
-cleanBlock (Para ins                ) = Para $ cleanInlines ins
-cleanBlock (Header 4 attr [Code _ _]) = Null
-cleanBlock (Header _ _    []        ) = Null
-cleanBlock (Div _ [Header 4 _ [], Plain [Span _ []]]) = Null
-cleanBlock (Header 1 _ [Link _ [(Str examples)] target])
-  | examples == "Examples" = Null
-cleanBlock (Header a attr ins) = Header a attr (cleanInlines ins)
+     (Header 1 _ [Str panics]) | panics == "Panics" -> Null
+     (Para ins                ) -> Para $ cleanInlines ins
+     (Header 4 attr [Code _ _]) -> Null
+     (Header _ _    []        ) -> Null
+     (Div _ [Header 4 _ [], Plain [Span _ []]]) -> Null
+     (Header 1 _ [Link _ [(Str examples)] target])
+        | examples == "Examples" -> Null
+     (Header a attr ins) -> Header a attr (cleanInlines ins)
 
-cleanBlock (Div attr blocks) = Div attr (map cleanBlock blocks)
-cleanBlock (BlockQuote blocks) = BlockQuote (map cleanBlock blocks)
-cleanBlock (BulletList blocklists) = BulletList $ map (map cleanBlock) blocklists
-cleanBlock x                   = x
+     (Div attr blocks) -> Div attr (map cleanBlock blocks)
+     (BlockQuote blocks) -> BlockQuote (map cleanBlock blocks)
+     (BulletList blocklists) -> BulletList $ map (map cleanBlock) blocklists
+     _                   -> block
 
 -- Amongst other things, removes some causes of unwanted linebreaks, for example space leads to linebreaks sometimes so it's replaced with Str " "
 cleanInlines :: [Inline] -> [Inline]
@@ -226,13 +227,13 @@ flattenBlock b = case b of
 
 flattenBlocks :: [Block] -> [Block]
 flattenBlocks ((Plain ins) : (Plain ins') : bs) =
-  Plain (cleanInlines (ins ++ ins')) : flattenBlocks bs
+  Plain (ins ++ ins') : flattenBlocks bs
 flattenBlocks ((Para ins) : (Plain ins') : bs) =
-  Para (cleanInlines (ins ++ ins')) : flattenBlocks bs
+  Para (ins ++ ins') : flattenBlocks bs
 flattenBlocks ((Plain ins) : (Para ins') : bs) =
-  Para (cleanInlines (ins ++ ins')) : flattenBlocks bs
-flattenBlocks (Plain ins : bs) = Plain (cleanInlines ins) : flattenBlocks bs
-flattenBlocks (Para  ins : bs) = Para (cleanInlines ins) : flattenBlocks bs
+  Para (ins ++ ins') : flattenBlocks bs
+flattenBlocks (Plain ins : bs) = Plain ins : flattenBlocks bs
+flattenBlocks (Para  ins : bs) = Para ins : flattenBlocks bs
 flattenBlocks []               = []
 flattenBlocks x                = x
 
