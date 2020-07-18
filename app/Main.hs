@@ -14,7 +14,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll =  makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock
+runAll = fixBulletList .  makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div a (Header 1 emptyAttrs (title inlines) : bs)
@@ -23,7 +23,7 @@ makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div a (Header 1 emptyAttrs (titl
     title ((Span (_, [inband], _) titlestrs):is)
       | inband == "in-band" = foldr (\ x acc -> case x of
                                         (Str t1) -> Str t1 : acc
-                                        (Link _ [(Str t1)] t) -> Link emptyAttrs [Str t1] t : acc
+                                        (Link _ s t) -> Link emptyAttrs s t : acc
                                         _ -> acc) [] titlestrs
     title (_:is) = title is
     title [] = []
@@ -102,7 +102,20 @@ methods b = case b of
 
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
 
-  x -> x
+  _ -> b
+
+fixBulletList :: Block -> Block
+fixBulletList (BulletList blockslist) = BulletList $ map (map removeHeaders) blockslist
+  where removeHeaders (Div _ bs) = Div emptyAttrs $ map removeHeaders $ fixOrdering (last bs : init bs)
+        removeHeaders x = x
+
+        -- The standard parsing of a bulleted list throws stuff around and puts them out of order, so need to set things straight.
+        fixOrdering :: [Block] -> [Block]
+        fixOrdering [] = []
+        fixOrdering (Plain (string:_) : (Header _ _ texts) : xs) = Plain (string : texts) : fixOrdering xs
+        fixOrdering (b:bs) = b : fixOrdering bs
+
+fixBulletList x = x
 
 --Some functions have a "must_use" description that comes out quite ugly unless we do something about it.
 fixMustUse :: Inline -> [Inline]
