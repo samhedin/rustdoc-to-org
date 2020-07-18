@@ -113,7 +113,7 @@ cleanInlines x = foldr
     (Link _ is target) -> Link emptyAttrs (cleanInlines is) target : acc
     (Span _ []) -> acc
     (Span attr is    ) -> Span attr (cleanInlines is) : acc
-    SoftBreak          -> acc
+    SoftBreak          -> Str " " : acc
     (Strong    ins)    -> Strong (cleanInlines ins) : acc
     (Emph      ins)    -> Emph (cleanInlines ins) : acc
     (Strikeout ins)    -> Strikeout (cleanInlines ins) : acc
