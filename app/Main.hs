@@ -15,6 +15,7 @@ main = toJSONFilter runAll
 
 runAll :: Block -> Block
 runAll  = fixBulletList . makeTitle . flattenBlock . methods . variants . header2 . cleanBlock
+-- runAll = cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
@@ -82,6 +83,10 @@ cleanBlock (Plain inlines) = Plain $ cleanInlines $ filter
   )
   inlines
 
+cleanBlock (Header 1 (panics, _, _) ins)
+  | T.isPrefixOf "panics" panics = Plain $ cleanInlines ins
+
+cleanBlock (Header 1 _ [Str panics]) | panics == "Panics" = Null
 cleanBlock (Para ins                ) = Para $ cleanInlines ins
 cleanBlock (Header 4 attr [Code _ _]) = Null
 cleanBlock (Header _ _    []        ) = Null
