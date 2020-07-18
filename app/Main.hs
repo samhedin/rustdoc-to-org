@@ -100,13 +100,12 @@ variants x = x
 -- [Plain [Span ("",["emoji"],[]) [Str "\128300"],Str " ",Str "This",Str " ",Str "is",Str " ",Str "a",Str " ",Str "nightly-only",Str " ",Str "experimental",Str " ",Str "API.",Str " ",Str "(",Code ("",[],[]) "option_result_contains",Str "\160",Link ("",[],[]) [Str "#62358"] ("https://github.com/rust-lang/rust/issues/62358",""),Str ")"]]]
 
 mkNotice :: [Block] -> [Inline]
-mkNotice blocks = case blocks of
-  (Plain ins) : bs -> ins ++ mkNotice bs
-  (Para ins) : bs -> ins ++ mkNotice bs
-  (Div _ bs) : bs' -> (mkNotice bs) ++ mkNotice bs'
-  (Header _ _ ins) : bs -> ins ++ mkNotice bs
-  (b : bs) ->  mkNotice bs
-  [] -> []
+mkNotice blocks = foldr (\ x acc -> case x of
+  (Plain ins) -> ins ++ acc
+  (Para ins) -> ins ++ acc
+  (Div _ bs) -> (mkNotice bs) ++ acc
+  (Header _ _ ins) -> ins ++ acc
+  _ ->  acc) [] blocks
 
 methods :: Block -> Block
 methods b = case b of
