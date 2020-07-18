@@ -17,7 +17,7 @@ runAll :: Block -> Block
 runAll  =  fixBulletList . makeTitle . flattenBlock . methods . variants . header2 . cleanBlock
 
 makeTitle :: Block -> Block
-makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
+makeTitle (Div a ((Header 0 _ inlines) : bs)) = Div
   a
   (Header 1 emptyAttrs (title inlines) : bs)
  where
