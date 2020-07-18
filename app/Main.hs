@@ -14,7 +14,8 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll  = fixBulletList . makeTitle . flattenBlock . sections .  header2 . cleanBlock
+runAll =
+  fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 0 _ inlines) : bs)) = Div
@@ -54,7 +55,7 @@ cleanBlock block = case block of
       == "logo-container"
       || classname
       == "toggle-wrapper"
-      -> Null
+    -> Null
 
   (Div (_, classname : _, _) _) | classname == "toggle-wrapper" -> Null
 
@@ -83,24 +84,23 @@ cleanBlock block = case block of
     )
     inlines
 
-  (Header 1 (panics, _, _) ins)
-    | T.isPrefixOf "panics" panics -> Plain $ cleanInlines ins
+  (Header 1 (panics, _, _) ins) | T.isPrefixOf "panics" panics ->
+    Plain $ cleanInlines ins
 
-  (Div _ ((Header 3 ("",[],[]) []) : bs)) -> Div emptyAttrs bs
+  (Div _ ((Header 3 ("", [], []) []) : bs)) -> Div emptyAttrs bs
   (Header 1 _ [Str panics]) | panics == "Panics" -> Null
-  (Para ins                ) -> Para $ cleanInlines ins
+  (Para ins) -> Para $ cleanInlines ins
   (Header 4 attr [Code _ _]) -> Null
-  (Header _ _    []        ) -> Null
+  (Header _ _ []) -> Null
   (Div _ [Header 4 _ [], Plain [Span _ []]]) -> Null
-  (Header 1 _ [Link _ [(Str examples)] target])
-    | examples == "Examples" -> Null
+  (Header 1 _ [Link _ [(Str examples)] target]) | examples == "Examples" -> Null
   (Header a attr ins) -> Header a attr (cleanInlines ins)
 
   (Div attr blocks) -> Div attr (map cleanBlock blocks)
   (BlockQuote blocks) -> BlockQuote (map cleanBlock blocks)
   (BulletList blocklists) -> BulletList $ map (map cleanBlock) blocklists
 
-  _                   -> block
+  _ -> block
 
 -- Amongst other things, removes some causes of unwanted linebreaks, for example space leads to linebreaks sometimes so it's replaced with Str " "
 cleanInlines :: [Inline] -> [Inline]
@@ -111,7 +111,7 @@ cleanInlines x = foldr
     (Link _ _ (url, _)) | url == "#required-sections" -> acc
     (Link _ (_ : (Span (_, [inner], _) _) : _) _) | inner == "inner" -> acc
     (Link _ is target) -> Link emptyAttrs (cleanInlines is) target : acc
-    (Span _ []) -> acc
+    (Span _    []    ) -> acc
     (Span attr is    ) -> Span attr (cleanInlines is) : acc
     SoftBreak          -> Str " " : acc
     (Strong    ins)    -> Strong (cleanInlines ins) : acc
@@ -137,8 +137,10 @@ mkNotice blocks = foldr
 
 sections :: Block -> Block
 sections b = case b of
-  (Div (_, [_, section], _) xs) | section == "small-section-header" -> Div emptyAttrs xs
-  (Plain [Link _ _ (url, _), Code (id, _, _) code]) -> Header 3 emptyAttrs [Code emptyAttrs code]
+  (Div (_, [_, section], _) xs) | section == "small-section-header" ->
+    Div emptyAttrs xs
+  (Plain [Link _ _ (url, _), Code (id, _, _) code]) ->
+    Header 3 emptyAttrs [Code emptyAttrs code]
   (Div (_, classnames, _) blocks) | "stability" `elem` classnames ->
     Plain $ mkNotice blocks
 
@@ -149,24 +151,25 @@ sections b = case b of
   (Header 1 _ ins) -> Header 1 emptyAttrs $ foldInlines ins
 
   (Header l _ ins) -> Header (l - 1) emptyAttrs $ foldInlines ins
-  (Plain (hidden : sections)) -> Div
-    emptyAttrs
-    [Header 3 emptyAttrs  sections, Plain $ fixMustUse hidden]
+  (Plain (hidden : sections)) ->
+    Div emptyAttrs [Header 3 emptyAttrs sections, Plain $ fixMustUse hidden]
 
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
 
-  where foldInlines ins = foldr (\ x acc -> case x of
-                                  (Link _ [Str src] _) | src == "[src]" -> acc
-                                  (Link _ (Str bracket : _) _) | bracket == "[" -> acc
-                                  (Span (_, [since], _) _) | since == "since" -> acc
-                                  (Link _ [] (url, _)) | T.isInfixOf "#" url -> acc
-                                  (Link _ desc (url, _)) | T.isInfixOf "#" url -> desc ++ acc
-                                  (Span attr ins) -> Span attr ins : acc
-                                  x -> x : acc
-                                )
-                                []
-                                ins
+ where
+  foldInlines ins = foldr
+    (\x acc -> case x of
+      (Link _ [Str src] _) | src == "[src]"         -> acc
+      (Link _ (Str bracket : _) _) | bracket == "[" -> acc
+      (Span (_, [since], _) _) | since == "since"   -> acc
+      (Link _ [] (url, _)) | T.isInfixOf "#" url    -> acc
+      (Link _ desc (url, _)) | T.isInfixOf "#" url  -> desc ++ acc
+      (Span attr ins)                               -> Span attr ins : acc
+      x                                             -> x : acc
+    )
+    []
+    ins
 
 
 --Bulletlist become super strange when imported. For example, the first word becomes last in the list so we have to take it and put it in the front.
@@ -206,15 +209,15 @@ fixMustUse inline = case inline of
 flattenBlock :: Block -> Block
 flattenBlock b = case b of
   (Div _ ((Div a b) : bs)) -> flattenBlock $ Div a (b ++ bs)
-  (Div _ [Header l a ins]) -> Header l a  ins
-  (Div _ [Plain ins     ]) -> Plain  ins
-  (Div _ [Para  ins     ]) -> Para  ins
+  (Div _ [Header l a ins]) -> Header l a ins
+  (Div _ [Plain ins     ]) -> Plain ins
+  (Div _ [Para  ins     ]) -> Para ins
   (Div _ [CodeBlock a t ]) -> CodeBlock a t
   (Div (_, names, _) blocks) | "unstable" `elem` names ->
     flattenBlock $ Div emptyAttrs $ flattenBlocks $ walk
       (\x -> map
         (\case
-          (Header 4 _ ins) -> Para  ins
+          (Header 4 _ ins) -> Para ins
           x                -> x
         )
         x
@@ -224,16 +227,14 @@ flattenBlock b = case b of
   x              -> x
 
 flattenBlocks :: [Block] -> [Block]
-flattenBlocks ((Plain ins) : (Plain ins') : bs) =
-  Plain (ins ++ ins') : flattenBlocks bs
-flattenBlocks ((Para ins) : (Plain ins') : bs) =
-  Para (ins ++ ins') : flattenBlocks bs
-flattenBlocks ((Plain ins) : (Para ins') : bs) =
-  Para (ins ++ ins') : flattenBlocks bs
-flattenBlocks (Plain ins : bs) = Plain ins : flattenBlocks bs
-flattenBlocks (Para  ins : bs) = Para ins : flattenBlocks bs
-flattenBlocks []               = []
-flattenBlocks x                = x
+flattenBlocks blocks = case blocks of
+ ((Plain ins) : (Plain ins') : bs) -> Plain (ins ++ ins') : flattenBlocks bs
+ ((Para ins) : (Plain ins') : bs) -> Para (ins ++ ins') : flattenBlocks bs
+ ((Plain ins) : (Para ins') : bs) -> Para (ins ++ ins') : flattenBlocks bs
+ (Plain ins : bs) -> Plain ins : flattenBlocks bs
+ (Para  ins : bs) -> Para ins : flattenBlocks bs
+ (b:bs) -> b : flattenBlocks bs
+ [] -> []
 
 
 header2 :: Block -> Block
