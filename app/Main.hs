@@ -14,7 +14,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll b =  makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock $ b
+runAll =  makeTitle . flattenBlock . examples . methods . variants . header2 . cleanBlock
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div a (Header 1 emptyAttrs (title inlines) : bs)
@@ -60,14 +60,27 @@ cleanBlock (Div (tag, _, _) bs)
   = Div emptyAttrs $ map cleanBlock bs
 
 cleanBlock (Plain inlines) = Plain $ cleanInlines $ filter (\case
-                                               (Link (_, [srclink], _) _ _) | srclink == "srclink" -> False
-                                               (Link (_, (collapse : _), _) _ _) | collapse == "collapse-toggle" -> False
+                                               (Link (_, [classname], _) _ _)
+                                                 | classname == "srclink"
+                                                   || classname == "collapse" -> False
+
                                                _ -> True) inlines
 
 cleanBlock (Para ins) = Para $ cleanInlines ins
 cleanBlock (Header 4 attr [Code _ _]) = Null
 cleanBlock (Header a attr ins) = Header a attr (cleanInlines ins)
 cleanBlock x = x
+
+-- Remove some causes of unwanted linebreaks
+cleanInlines :: [Inline] -> [Inline]
+cleanInlines x = foldr (\ x acc -> case x of
+    Space -> Str " " : acc
+    LineBreak -> Str " " : acc
+    (Link _ (_ : (Span (_, [inner], _) _) : _) _) | inner == "inner" -> acc
+    (Link _ is target)  -> Link emptyAttrs (cleanInlines is) target : acc
+    (Span attr is)  -> Span attr (cleanInlines is) : acc
+    SoftBreak -> acc
+    _ -> x : acc) [] x
 
 variants :: Block -> Block
 variants (Div (_,[_, section], _) xs)
@@ -118,14 +131,6 @@ flattenBlock b = case b of
                                           x -> x) x) blocks
   x -> x
 
-cleanInlines :: [Inline] -> [Inline]
-cleanInlines x = foldr (\ x acc -> case x of
-    Space -> Str " " : acc
-    LineBreak -> Str " " : acc
-    (Link _ is target)  -> Link emptyAttrs (cleanInlines is) target : acc
-    (Span attr is)  -> Span attr (cleanInlines is) : acc
-    SoftBreak -> acc
-    _ -> x : acc) [] x
 
 --Link Attr [Inline] Target
 header2 :: Block -> Block
