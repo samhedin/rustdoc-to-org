@@ -4,8 +4,7 @@ A Pandoc filter that converts rust documentation to .org-files! This is still in
 ![Demo with helm ag](demo.gif)
 ## Installation
 * Install Pandoc https://pandoc.org/
-* Download the ![binary](https://github.com/samhedin/rustdoc-to-org/releases/tag/v0.1)
-* Install it with `cp rustdoc-to-org-exe /usr/bin`
+* Download and install rustdoc-to-org: `wget https://github.com/samhedin/rustdoc-to-org/releases/download/v0.1/rustdoc-to-org-exe; sudo cp rustdoc-to-org-exe ~/.local/usr/bin`, make sure that `~/.local/usr/bin` is in your `PATH`.
 * Locate a rustdoc html file you wish to convert, and run `pandoc <file> --filter rustoc-to-org-exe -o outfile.org`
 
 ### Batch convert
