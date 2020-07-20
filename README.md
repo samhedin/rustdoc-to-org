@@ -34,7 +34,6 @@ I use it with [Helm ag](https://github.com/bridgesense/emacs-helm-ag), setting d
 * Make code not awful and not slow.
 * Pandoc seems to be keen on inserting extra linebreaks between sections. For example, there is an extra linebreak after each header. It would be nice to remove this.
 * There is a redundant title string before the actual Header title, which should be removed.
-* Examples should use rust syntax highlighting, but I could not figure out how to do it.
 * Fill out this list.
 
 All suggestions, comments and more are welcomed!
