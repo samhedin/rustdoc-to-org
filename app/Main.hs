@@ -8,9 +8,8 @@ import qualified Data.Text                     as T
 main :: IO ()
 main = toJSONFilter runAll
 
-runAll :: Block -> Block
-runAll =
-   fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock
+runAll :: [ Block ] -> [ Block ]
+runAll bs =  map ( fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock) bs
 
 emptyAttrs :: (T.Text, [T.Text], [(T.Text, T.Text)])
 emptyAttrs = ("", [], [])
@@ -88,7 +87,7 @@ cleanBlock block = case block of
 
   (Header 1 (panics, _, _) ins) | T.isPrefixOf "panics" panics ->
     Plain $ cleanInlines ins
-
+  (CodeBlock a t)  -> Para [Str "#+BEGIN_SRC rust \n",  Str t, Str "\n#+END_SRC"]
   (Div _ ((Header 3 ("", [], []) []) : bs)) -> Div emptyAttrs bs
   (Header 1 _ [Str panics]) | panics == "Panics" -> Null
   (Para ins) -> Para $ cleanInlines ins
@@ -110,12 +109,12 @@ cleanInlines x = foldr
   (\x acc -> case x of
     Space              -> Str " " : acc
     LineBreak          -> Str " " : acc
+    SoftBreak -> Str " " : acc
     (Link _ _ (url, _)) | url == "#required-sections" -> acc
     (Link _ (_ : (Span (_, [inner], _) _) : _) _) | inner == "inner" -> acc
     (Link _ is target) -> (Span emptyAttrs (cleanInlines is)) : acc
     (Span _    []    ) -> acc
     (Span attr is    ) -> Span attr (cleanInlines is) : acc
-    SoftBreak          -> Str " " : acc
     (Strong    ins)    -> Strong (cleanInlines ins) : acc
     (Emph      ins)    -> Emph (cleanInlines ins) : acc
     (Strikeout ins)    -> Strikeout (cleanInlines ins) : acc
@@ -170,8 +169,8 @@ sections b = case b of
       (Link _ [] (url, _)) | T.isInfixOf "#" url    -> acc
       (Link _ desc (url, _)) | T.isInfixOf "#" url  -> desc ++ acc
       (Code _ desc) | T.isPrefixOf "#[must" desc ->
-        let descNoMustUse = (T.drop 1 (T.dropWhile (/= ']') desc))
-            mustUse       = (T.takeWhile (/= ']') (T.dropWhile (/= '=') desc))
+        let descNoMustUse = T.drop 1 (T.dropWhile (/= ']') desc)
+            mustUse       = T.takeWhile (/= ']') (T.drop 1 (T.dropWhile (/= '=') desc))
         in  Code emptyAttrs descNoMustUse : Str " " : if T.length mustUse > 3
               then Note [Plain [Str mustUse]] : acc
               else acc
@@ -201,7 +200,7 @@ flattenBlock b = case b of
   (Div _ [Header l a ins]) -> Header l a ins
   (Div _ [Plain ins     ]) -> Plain ins
   (Div _ [Para  ins     ]) -> Para ins
-  (Div _ [CodeBlock a t ]) -> CodeBlock a t
+  (Div _ [CodeBlock a t ]) -> Para [Str "#+BEGIN_SRC rust", SoftBreak, Str t, Str "#+END_SRC"]
   (Div (_, names, _) blocks) | "unstable" `elem` names ->
     flattenBlock $ Div emptyAttrs $ flattenBlocks $ walk
       (\x -> map
