@@ -27,4 +27,9 @@ In the demo I used <https://github.com/emacsorphanage/helm-ag> with the followin
 ## TODO
 * Figure out a way to get links working. All links point to .html files, they should be updated to point to .org files.
 * Make code not awful and not slow.
+* Pandoc seems to be keen on inserting extra linebreaks between sections. For example, there is an extra linebreak after each header. It would be nice to remove this.
+* There is a redundant title string before the actual Header title, which should be removed.
+* Examples should use rust syntax highlighting, but I could not figure out how to do it.
 * Fill out this list.
+
+All suggestions, comments and more are welcomed!
