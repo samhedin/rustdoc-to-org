@@ -38,7 +38,7 @@ makeTitle block = case block of
 -- cleanBlock removes things like the sidebar, and calls cleanInlines to remove whitespace and more
 cleanBlock :: Block -> Block
 cleanBlock block = case block of
-  (Div (_, (classname : _), _) _)
+  (Div (_, classname : _, _) _)
     | classname
       == "shortcuts"
       || classname
@@ -107,7 +107,7 @@ cleanBlock block = case block of
 
 -- Amongst other things, removes some causes of unwanted linebreaks, for example space leads to linebreaks sometimes so it's replaced with Str " "
 cleanInlines :: [Inline] -> [Inline]
-cleanInlines x = foldr
+cleanInlines = foldr
   (\x acc -> case x of
     Space              -> Str " " : acc
     LineBreak          -> Str " " : acc
@@ -125,11 +125,10 @@ cleanInlines x = foldr
     _               -> x : acc
   )
   []
-  x
 
 -- This makes [inline] of This is a nightly-only experimental API, so that it doesn't become a header.
 mkNotice :: [Block] -> [Inline]
-mkNotice blocks = foldr
+mkNotice = foldr
   (\x acc -> case x of
     (Plain ins     ) -> ins ++ acc
     (Para  ins     ) -> ins ++ acc
@@ -138,7 +137,6 @@ mkNotice blocks = foldr
     _                -> acc
   )
   []
-  blocks
 
 
 sections :: Block -> Block
@@ -162,7 +160,7 @@ sections b = case b of
   _ -> b
 
  where
-  foldInlines ins = foldr
+  foldInlines = foldr
     (\x acc -> case x of
       (Span _ [Str src]) | src == "[src]" -> acc
       (Code _ desc) | T.isPrefixOf "#[must" desc ->
@@ -176,7 +174,6 @@ sections b = case b of
       x               -> x : acc
     )
     []
-    ins
 
 --Bulletlists become super strange when imported. For example, the first word becomes last in the list so we have to take it and put it in the front.
 fixBulletList :: Block -> Block

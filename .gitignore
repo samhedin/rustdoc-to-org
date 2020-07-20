@@ -22,3 +22,6 @@ cabal.project.local~
 .HTF/
 .ghc.environment.*
 /option.org
+/filterednative
+/AsRef.org
+/native
