@@ -163,11 +163,6 @@ sections b = case b of
   foldInlines ins = foldr
     (\x acc -> case x of
       (Span _ [Str src]) | src == "[src]"         -> acc
-      (Link _ [Str src] _) | src == "[src]"         -> acc
-      (Link _ (Str bracket : _) _) | bracket == "[" -> acc
-      (Span (_, [since], _) _) | since == "since"   -> acc
-      (Link _ [] (url, _)) | T.isInfixOf "#" url    -> acc
-      (Link _ desc (url, _)) | T.isInfixOf "#" url  -> desc ++ acc
       (Code _ desc) | T.isPrefixOf "#[must" desc ->
         let descNoMustUse = T.drop 1 (T.dropWhile (/= ']') desc)
             mustUse       = T.takeWhile (/= ']') (T.drop 1 (T.dropWhile (/= '=') desc))
