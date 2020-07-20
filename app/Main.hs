@@ -9,7 +9,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: [ Block ] -> [ Block ]
-runAll bs =  map ( fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock) bs
+runAll bs =  map ( fixBulletList . makeTitle  . sections  . cleanBlock) bs
 
 emptyAttrs :: (T.Text, [T.Text], [(T.Text, T.Text)])
 emptyAttrs = ("", [], [])
@@ -154,7 +154,7 @@ sections b = case b of
 
   (Header l _ ins) -> Header (l - 1) emptyAttrs $ foldInlines ins
   (Plain (hidden : sections)) ->
-    Div emptyAttrs [Header 3 emptyAttrs sections, Plain $ [hidden]]
+    Div emptyAttrs [Header 3 emptyAttrs sections, Plain [hidden]]
 
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
@@ -180,52 +180,13 @@ sections b = case b of
     []
     ins
 
-
---Bulletlist become super strange when imported. For example, the first word becomes last in the list so we have to take it and put it in the front.
+--Bulletlists become super strange when imported. For example, the first word becomes last in the list so we have to take it and put it in the front.
 fixBulletList :: Block -> Block
 fixBulletList (BulletList bullets) = BulletList $ foldr
   (\x acc -> case x of
-    ((Div _ ((Header _ _ bullet) : bs)) : divs) ->
-      flattenBlocks (head bs : Plain bullet : tail bs) : acc -- TODO notice that this is ignoring divs, may lead to missing elements in the future?
+    ((Div _ ((Header _ _ bullet) : bs)) : divs) -> (head bs : Plain bullet : tail bs) : acc -- TODO notice that this is ignoring divs, may lead to missing elements in the future?
     _ -> x : acc
   )
   []
   bullets
 fixBulletList x = x
-
-
-flattenBlock :: Block -> Block
-flattenBlock b = case b of
-  (Div _ ((Div a b) : bs)) -> flattenBlock $ Div a (b ++ bs)
-  (Div _ [Header l a ins]) -> Header l a ins
-  (Div _ [Plain ins     ]) -> Plain ins
-  (Div _ [Para  ins     ]) -> Para ins
-  (Div _ [CodeBlock a t ]) -> Para [Str "#+BEGIN_SRC rust", SoftBreak, Str t, Str "#+END_SRC"]
-  (Div (_, names, _) blocks) | "unstable" `elem` names ->
-    flattenBlock $ Div emptyAttrs $ flattenBlocks $ walk
-      (\x -> map
-        (\case
-          (Header 4 _ ins) -> Para ins
-          x                -> x
-        )
-        x
-      )
-      blocks
-  (Div _ blocks) -> Div emptyAttrs $ flattenBlocks blocks
-  _              -> b
-
-flattenBlocks :: [Block] -> [Block]
-flattenBlocks blocks = case blocks of
-  ((Plain ins) : (Plain ins') : bs) -> Plain (ins ++ ins') : flattenBlocks bs
-  ((Para ins) : (Plain ins') : bs) -> Para (ins ++ ins') : flattenBlocks bs
-  ((Plain ins) : (Para ins') : bs) -> Para (ins ++ ins') : flattenBlocks bs
-  (Plain ins : bs) -> Plain ins : flattenBlocks bs
-  (Para ins : bs) -> Para ins : flattenBlocks bs
-  (b : bs) -> flattenBlock b : flattenBlocks bs
-  [] -> []
-
-
-header2 :: Block -> Block
-header2 (Header 2 _ ((Str name) : Link _ _ (url, _) : inlines)) =
-  Header 2 emptyAttrs [Link emptyAttrs [Str name] (url, name)]
-header2 a = a
