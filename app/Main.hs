@@ -9,30 +9,31 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: [ Block ] -> [ Block ]
-runAll bs =  map ( fixBulletList . makeTitle  . sections  . cleanBlock) bs
+runAll =  map (fixBulletList . makeTitle  . sections  . cleanBlock)
 
 emptyAttrs :: (T.Text, [T.Text], [(T.Text, T.Text)])
 emptyAttrs = ("", [], [])
 
 makeTitle :: Block -> Block
-makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
-  a
-  (Header 1 emptyAttrs (title inlines) : bs)
- where
-  title :: [Inline] -> [Inline]
-  title ((Span (_, [inband], _) titlestrs) : is) | inband == "in-band" =  foldr
-    (\ x acc -> case x of
-      (Str t1             ) -> Str t1 : acc
-      (Span _ ins) -> ins ++ acc
-      (Link _ [Str name] t) -> Str name : acc
-      _                     -> acc
-    )
-    []
-    titlestrs
+makeTitle block = case block of
+  (Div _ ((Header 1 _ inlines) : bs)) -> Div
+    emptyAttrs
+    (Header 1 emptyAttrs (title inlines) : bs)
 
-  title (_ : is) = title is
-  title []       = []
-makeTitle x = x
+  _ -> block
+  where
+      title ((Span (_, [inband], _) titlestrs) : is) | inband == "in-band" =  foldr
+        (\ x acc -> case x of
+          (Str t1             ) -> Str t1 : acc
+          (Span _ ins) -> ins ++ acc
+          (Link _ [Str name] t) -> Str name : acc
+          _                     -> acc
+        )
+        []
+        titlestrs
+
+      title (_ : is) = title is
+      title []       = []
 
 
 -- cleanBlock removes things like the sidebar, and calls cleanInlines to remove whitespace and more
@@ -57,6 +58,8 @@ cleanBlock block = case block of
       == "toggle-wrapper"
     -> Null
 
+  (Div (_, [_, section], _) xs) | section == "small-section-header" -> Null
+
   (Div (_, classname : _, _) _) | classname == "toggle-wrapper" -> Null
   (Para [Link _ [] _]) -> Null
 
@@ -75,7 +78,8 @@ cleanBlock block = case block of
       || tag
       == "blanket-implementation-list"
     -> Div emptyAttrs $ map cleanBlock bs
-  (Plain [Link _ [Str panics] _]) | panics == "Panics" -> Null
+
+  (Plain [Span _ [Str panics] ]) | panics == "Panics" -> Null
   (Plain inlines) -> Plain $ cleanInlines $ filter
     (\case
       (Link (_, [classname], _) _ _)
@@ -112,8 +116,9 @@ cleanInlines x = foldr
     SoftBreak -> Str " " : acc
     (Link _ _ (url, _)) | url == "#required-sections" -> acc
     (Link _ (_ : (Span (_, [inner], _) _) : _) _) | inner == "inner" -> acc
-    (Link _ is target) -> (Span emptyAttrs (cleanInlines is)) : acc
+    (Link _ is target) -> Span emptyAttrs (cleanInlines is) : acc
     (Span _    []    ) -> acc
+    (Span (_, [since], _) _) | since == "since" -> acc
     (Span attr is    ) -> Span attr (cleanInlines is) : acc
     (Strong    ins)    -> Strong (cleanInlines ins) : acc
     (Emph      ins)    -> Emph (cleanInlines ins) : acc
@@ -139,8 +144,6 @@ mkNotice blocks = foldr
 
 sections :: Block -> Block
 sections b = case b of
-  (Div (_, [_, section], _) xs) | section == "small-section-header" ->
-    Div emptyAttrs xs
   (Plain [Link _ _ (url, _), Code (id, _, _) code]) ->
     Header 3 emptyAttrs [Code emptyAttrs code]
   (Div (_, classnames, _) blocks) | "stability" `elem` classnames ->
