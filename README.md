@@ -1,5 +1,5 @@
 # emacs-rustdoc
-![Demo with helm ag](https://i.imgur.com/qhTz8cW.gif)
+![Demo with helm ag](demo.gif)
 In the demo I used <https://github.com/emacsorphanage/helm-ag> but with the following options.
 ``` emacs-lisp
 (defun search-rustdoc ()
