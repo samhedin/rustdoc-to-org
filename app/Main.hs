@@ -5,7 +5,7 @@ import           Text.Pandoc.JSON
 import           Text.Pandoc.Walk
 import qualified Data.Text                     as T
 
--- https://hackage.haskell.org/package/pandoc-types-1.21/docs/Text-Pandoc-Definition.html#t:Attr
+-- https://hackage.haskell.org/package/pandoc-types-1.21/docs/Text-Pandoc-Definition.html
 
 emptyAttrs :: (T.Text, [T.Text], [(T.Text, T.Text)])
 emptyAttrs = ("", [], [])
@@ -14,7 +14,9 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll b = fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock $ b
+runAll b = makeTitle b
+runAll b =
+  fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock $ b
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
@@ -22,22 +24,18 @@ makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
   (Header 1 emptyAttrs (title inlines) : bs)
  where
   title :: [Inline] -> [Inline]
-  title ((Span (_, [inband], _) titlestrs) : is)
-    | inband == "in-band" =
-      let (titl, doclink) = foldl
-            (\acc x -> case x of
-              (Str t1    ) -> (fst acc ++ [ Str t1 ], snd acc)
-              (Link _ s t) -> (fst acc ++ s, Link emptyAttrs s t)
-              _            -> acc
-            )
-            ([], Link emptyAttrs [] ("","")) titlestrs in --this might feel unnecessary, but for some reason org mode did not deal with links properly in the title so I had to remove all but the last.
-         init titl ++ [ doclink ]
+  title ((Span (_, [inband], _) titlestrs) : is) | inband == "in-band" = foldr
+    (\ x acc -> case x of
+      (Str t1             ) -> Str t1 : acc
+      (Link _ [Str name] t) -> Str name : acc
+      _                     -> acc
+    )
+    []
+    titlestrs
 
   title (_ : is) = title is
   title []       = []
 makeTitle x = x
-
--- Link Attr [Inline] Target
 
 
 -- cleanBlock removes things like the sidebar, and calls cleanInlines to remove whitespace and more
@@ -161,7 +159,7 @@ sections b = case b of
 
   (Header l _ ins) -> Header (l - 1) emptyAttrs $ foldInlines ins
   (Plain (hidden : sections)) ->
-    Div emptyAttrs [Header 3 emptyAttrs sections, Plain $  [hidden]]
+    Div emptyAttrs [Header 3 emptyAttrs sections, Plain $ [hidden]]
 
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
@@ -175,15 +173,13 @@ sections b = case b of
       (Link _ [] (url, _)) | T.isInfixOf "#" url    -> acc
       (Link _ desc (url, _)) | T.isInfixOf "#" url  -> desc ++ acc
       (Code _ desc) | T.isPrefixOf "#[must" desc ->
-                      let descNoMustUse = (T.drop 1 (T.dropWhile (/= ']') desc))
-                          mustUse = (T.takeWhile (/= ']') (T.dropWhile (/= '=') desc))
-                      in
-                      Code emptyAttrs descNoMustUse : Str " " :
-                        if T.length mustUse > 3 then
-                            Note [Plain [Str mustUse] ] : acc
-                        else acc
-      (Span attr ins)                               -> Span attr ins : acc
-      x                                             -> x : acc
+        let descNoMustUse = (T.drop 1 (T.dropWhile (/= ']') desc))
+            mustUse       = (T.takeWhile (/= ']') (T.dropWhile (/= '=') desc))
+        in  Code emptyAttrs descNoMustUse : Str " " : if T.length mustUse > 3
+              then Note [Plain [Str mustUse]] : acc
+              else acc
+      (Span attr ins) -> Span attr ins : acc
+      x               -> x : acc
     )
     []
     ins
@@ -228,13 +224,13 @@ flattenBlock b = case b of
 
 flattenBlocks :: [Block] -> [Block]
 flattenBlocks blocks = case blocks of
- ((Plain ins) : (Plain ins') : bs) -> Plain (ins ++ ins') : flattenBlocks bs
- ((Para ins) : (Plain ins') : bs) -> Para (ins ++ ins') : flattenBlocks bs
- ((Plain ins) : (Para ins') : bs) -> Para (ins ++ ins') : flattenBlocks bs
- (Plain ins : bs) -> Plain ins : flattenBlocks bs
- (Para  ins : bs) -> Para ins : flattenBlocks bs
- (b:bs) -> flattenBlock b : flattenBlocks bs
- [] -> []
+  ((Plain ins) : (Plain ins') : bs) -> Plain (ins ++ ins') : flattenBlocks bs
+  ((Para ins) : (Plain ins') : bs) -> Para (ins ++ ins') : flattenBlocks bs
+  ((Plain ins) : (Para ins') : bs) -> Para (ins ++ ins') : flattenBlocks bs
+  (Plain ins : bs) -> Plain ins : flattenBlocks bs
+  (Para ins : bs) -> Para ins : flattenBlocks bs
+  (b : bs) -> flattenBlock b : flattenBlocks bs
+  [] -> []
 
 
 header2 :: Block -> Block
