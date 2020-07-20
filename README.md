@@ -9,11 +9,11 @@ A Pandoc filter that converts rust documentation to .org-files! This is still in
 * Locate a rustdoc html file you wish to convert, and run `pandoc <file> --filter rustoc-to-org-exe -o <file>.org`
 
 ### Batch convert
-You can generate all `.html` files for std by running `rustup doc`, which will put the files somewhere in `~/.rustup/`, in my case in `/home/sam/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc/rust/html/std/)`.
-You can then convert all of them with the provided `batch_convert.sh` script.
-`sh batch_convert.sh "/home/sam/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc/rust/html/std" "/home/sam/.emacs.d/private/rustdoc/"`
+You can generate all `.html` files for std by running `rustup doc`, which will put the files somewhere in `~/.rustup/`, in my case in `~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc/rust/html/std/)`.
+You can then convert all of them with `batch_convert.sh`.
+`sh batch_convert.sh <input_dir> <output_dir>`
 
-In the demo I used <https://github.com/emacsorphanage/helm-ag> with the following options.
+I use it with [Helm ag] (https://github.com/emacsorphanage/helm-ag), setting dir to the previously used output dir.
 ``` emacs-lisp
 (defun search-rustdoc ()
     (interactive)
