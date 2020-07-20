@@ -68,10 +68,6 @@ cleanBlock block = case block of
   (Plain ((Link (_, [name], _) _ _) : _))
     | name == "sidebar-title" || name == "test-arrow" -> Null
 
-  (Header l _ ((Code _ desc) : ins)) | T.isInfixOf "must_use" desc -> Div emptyAttrs
-    [ Header l emptyAttrs (Code emptyAttrs (T.drop 1 (T.dropWhile (/= ']') desc)) : ins),
-      Para [ Str desc ] ]
-
   (Div (tag, _, _) bs)
     | tag
       == "main"
@@ -145,6 +141,9 @@ mkNotice blocks = foldr
   []
   blocks
 
+
+
+
 sections :: Block -> Block
 sections b = case b of
   (Div (_, [_, section], _) xs) | section == "small-section-header" ->
@@ -162,7 +161,7 @@ sections b = case b of
 
   (Header l _ ins) -> Header (l - 1) emptyAttrs $ foldInlines ins
   (Plain (hidden : sections)) ->
-    Div emptyAttrs [Header 3 emptyAttrs sections, Plain $ fixMustUse hidden]
+    Div emptyAttrs [Header 3 emptyAttrs sections, Plain $  [hidden]]
 
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
@@ -175,13 +174,17 @@ sections b = case b of
       (Span (_, [since], _) _) | since == "since"   -> acc
       (Link _ [] (url, _)) | T.isInfixOf "#" url    -> acc
       (Link _ desc (url, _)) | T.isInfixOf "#" url  -> desc ++ acc
-      (Code _ desc) | T.isPrefixOf "#[must_use]" desc -> Code emptyAttrs desc : acc
+      (Code _ desc) | T.isPrefixOf "#[must" desc -> Code emptyAttrs (T.drop 1 (T.dropWhile (/= ']') desc)) : Str " " : Note [Plain [Str desc] ] : acc
       (Span attr ins)                               -> Span attr ins : acc
       x                                             -> x : acc
     )
     []
     ins
 
+
+  -- (Header l _ ((Code _ desc) : ins)) | T.isInfixOf "must_use" desc -> Div emptyAttrs
+  --   [ Header (l - 1) emptyAttrs (Code emptyAttrs (T.drop 1 (T.dropWhile (/= ']') desc)) : ins),
+  --     Para [ Str desc ] ] --TODO check me here sometging strange is happening
 
 --Bulletlist become super strange when imported. For example, the first word becomes last in the list so we have to take it and put it in the front.
 fixBulletList :: Block -> Block
@@ -195,27 +198,6 @@ fixBulletList (BulletList bullets) = BulletList $ foldr
   bullets
 fixBulletList x = x
 
---Some functions have a "must_use" description that comes out quite ugly unless we do something about it.
-fixMustUse :: Inline -> [Inline]
-fixMustUse inline = case inline of
-  (Span _ ins) ->
-    [ Span
-        emptyAttrs
-        (foldr
-          (\x acc -> case x of
-            (Str deleteMe) | deleteMe == "#[must_use" || deleteMe == "=" -> acc
-            SoftBreak -> acc
-            (Str quote) | head (T.unpack quote) == '\"' ->
-              Str (T.tail quote) : acc
-            (Str endbracket) | ']' `elem` T.unpack endbracket ->
-              Str (T.dropEnd 2 endbracket) : acc
-            x -> x : acc
-          )
-          []
-          (drop 3 ins)
-        )
-    ]
-  _ -> [inline]
 
 flattenBlock :: Block -> Block
 flattenBlock b = case b of
