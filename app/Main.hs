@@ -5,11 +5,6 @@ import           Text.Pandoc.JSON
 import           Text.Pandoc.Walk
 import qualified Data.Text                     as T
 
--- https://hackage.haskell.org/package/pandoc-types-1.21/docs/Text-Pandoc-Definition.html
-
-emptyAttrs :: (T.Text, [T.Text], [(T.Text, T.Text)])
-emptyAttrs = ("", [], [])
-
 main :: IO ()
 main = toJSONFilter runAll
 
@@ -17,6 +12,8 @@ runAll :: Block -> Block
 runAll =
    fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock
 
+emptyAttrs :: (T.Text, [T.Text], [(T.Text, T.Text)])
+emptyAttrs = ("", [], [])
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
@@ -27,6 +24,7 @@ makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
   title ((Span (_, [inband], _) titlestrs) : is) | inband == "in-band" =  foldr
     (\ x acc -> case x of
       (Str t1             ) -> Str t1 : acc
+      (Span _ ins) -> ins ++ acc
       (Link _ [Str name] t) -> Str name : acc
       _                     -> acc
     )
@@ -114,7 +112,7 @@ cleanInlines x = foldr
     LineBreak          -> Str " " : acc
     (Link _ _ (url, _)) | url == "#required-sections" -> acc
     (Link _ (_ : (Span (_, [inner], _) _) : _) _) | inner == "inner" -> acc
-    (Link _ is target) -> Link emptyAttrs (cleanInlines is) target : acc
+    (Link _ is target) -> (Span emptyAttrs (cleanInlines is)) : acc
     (Span _    []    ) -> acc
     (Span attr is    ) -> Span attr (cleanInlines is) : acc
     SoftBreak          -> Str " " : acc
@@ -138,8 +136,6 @@ mkNotice blocks = foldr
   )
   []
   blocks
-
-
 
 
 sections :: Block -> Block
@@ -167,6 +163,7 @@ sections b = case b of
  where
   foldInlines ins = foldr
     (\x acc -> case x of
+      (Span _ [Str src]) | src == "[src]"         -> acc
       (Link _ [Str src] _) | src == "[src]"         -> acc
       (Link _ (Str bracket : _) _) | bracket == "[" -> acc
       (Span (_, [since], _) _) | since == "since"   -> acc
@@ -184,10 +181,6 @@ sections b = case b of
     []
     ins
 
-
-  -- (Header l _ ((Code _ desc) : ins)) | T.isInfixOf "must_use" desc -> Div emptyAttrs
-  --   [ Header (l - 1) emptyAttrs (Code emptyAttrs (T.drop 1 (T.dropWhile (/= ']') desc)) : ins),
-  --     Para [ Str desc ] ] --TODO check me here sometging strange is happening
 
 --Bulletlist become super strange when imported. For example, the first word becomes last in the list so we have to take it and put it in the front.
 fixBulletList :: Block -> Block
