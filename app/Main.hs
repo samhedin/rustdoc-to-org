@@ -174,7 +174,8 @@ sections b = case b of
       (Span (_, [since], _) _) | since == "since"   -> acc
       (Link _ [] (url, _)) | T.isInfixOf "#" url    -> acc
       (Link _ desc (url, _)) | T.isInfixOf "#" url  -> desc ++ acc
-      (Code _ desc) | T.isPrefixOf "#[must" desc -> Code emptyAttrs (T.drop 1 (T.dropWhile (/= ']') desc)) : Str " " : Note [Plain [Str desc] ] : acc
+      (Code _ desc) | T.isPrefixOf "#[must" desc -> Code emptyAttrs (T.drop 1 (T.dropWhile (/= ']') desc)) : Str " " :
+        Note [Plain [Str (T.takeWhile (/= ']') (T.dropWhile (/= '=') desc))] ] : acc
       (Span attr ins)                               -> Span attr ins : acc
       x                                             -> x : acc
     )
