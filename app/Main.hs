@@ -63,9 +63,9 @@ cleanBlock block = case block of
       || tag
       == "imlementation-list"
       || tag
-      == "synthetic-implementation-list"
+      == "synthetic-implementations-list"
       || tag
-      == "blanket-implementation-list"
+      == "blanket-implementations-list"
     -> Div emptyAttrs $ map cleanBlock bs
 
   (Plain [Span _ [Str panics] ]) | panics == "Panics" -> Null
