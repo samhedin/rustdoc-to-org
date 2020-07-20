@@ -14,7 +14,6 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll b = makeTitle b
 runAll b =
   fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock $ b
 
@@ -24,7 +23,7 @@ makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
   (Header 1 emptyAttrs (title inlines) : bs)
  where
   title :: [Inline] -> [Inline]
-  title ((Span (_, [inband], _) titlestrs) : is) | inband == "in-band" = foldr
+  title ((Span (_, [inband], _) titlestrs) : is) | inband == "in-band" =  foldr
     (\ x acc -> case x of
       (Str t1             ) -> Str t1 : acc
       (Link _ [Str name] t) -> Str name : acc
