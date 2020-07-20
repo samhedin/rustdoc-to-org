@@ -16,25 +16,15 @@ emptyAttrs = ("", [], [])
 
 makeTitle :: Block -> Block
 makeTitle block = case block of
-  (Div _ ((Header 1 _ inlines) : bs)) -> Div
+  (Div _ ((Header 1 _ headerData) : bs)) -> Div
     emptyAttrs
-    (Header 1 emptyAttrs (title inlines) : bs)
+    (Header 1 emptyAttrs
+     (cleanInlines (filter (\case
+                                 (Span (_, [inband], _) _) | inband == "in-band" -> True -- The title information we wish to save and show is in this Span.
+                                 _ -> False) headerData))
+      : bs)
 
   _ -> block
-  where
-      title ((Span (_, [inband], _) titlestrs) : is) | inband == "in-band" =  foldr
-        (\ x acc -> case x of
-          (Str t1             ) -> Str t1 : acc
-          (Span _ ins) -> ins ++ acc
-          (Link _ [Str name] t) -> Str name : acc
-          _                     -> acc
-        )
-        []
-        titlestrs
-
-      title (_ : is) = title is
-      title []       = []
-
 
 -- cleanBlock removes things like the sidebar, and calls cleanInlines to remove whitespace and more
 cleanBlock :: Block -> Block
