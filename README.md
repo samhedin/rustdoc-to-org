@@ -1,5 +1,4 @@
-# emacs-rustdoc
-A Pandoc filter that converts rust documentation to .org-files!
+A Pandoc filter that converts rust documentation to .org-files! This is still in a very early state and there are many improvements to work on, hopefully this can end up helping someone.
 
 ![Demo with helm ag](demo.gif)
 ## Installation
