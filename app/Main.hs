@@ -29,7 +29,7 @@ makeTitle block = case block of
 -- cleanBlock removes things like the sidebar, and calls cleanInlines to remove whitespace and more
 cleanBlock :: Block -> Block
 cleanBlock block = case block of
-  (Div (_, [classname], _) _)
+  (Div (_, (classname : _), _) _)
     | classname
       == "shortcuts"
       || classname
@@ -50,7 +50,6 @@ cleanBlock block = case block of
 
   (Div (_, [_, section], _) xs) | section == "small-section-header" -> Null
 
-  (Div (_, classname : _, _) _) | classname == "toggle-wrapper" -> Null
   (Para [Link _ [] _]) -> Null
 
   (Plain ((Link (_, [name], _) _ _) : _))
@@ -81,8 +80,8 @@ cleanBlock block = case block of
 
   (Header 1 (panics, _, _) ins) | T.isPrefixOf "panics" panics ->
     Plain $ cleanInlines ins
-  (CodeBlock a t)  -> Para [Str "#+BEGIN_SRC rust \n",  Str t, Str "\n#+END_SRC"]
-  (Div _ ((Header 3 ("", [], []) []) : bs)) -> Div emptyAttrs bs
+
+  (CodeBlock a t)  -> Para [Str "#+BEGIN_SRC rust \n",  Str t, Str "\n#+END_SRC"] -- This lets us use syntax highlighting
   (Header 1 _ [Str panics]) | panics == "Panics" -> Null
   (Para ins) -> Para $ cleanInlines ins
   (Header 4 attr [Code _ _]) -> Null
@@ -108,7 +107,7 @@ cleanInlines x = foldr
     (Link _ (_ : (Span (_, [inner], _) _) : _) _) | inner == "inner" -> acc
     (Link _ is target) -> Span emptyAttrs (cleanInlines is) : acc
     (Span _    []    ) -> acc
-    (Span (_, [since], _) _) | since == "since" -> acc
+    (Span (_, [classname], _) _) | classname  == "since" || classname == "emoji" -> acc
     (Span attr is    ) -> Span attr (cleanInlines is) : acc
     (Strong    ins)    -> Strong (cleanInlines ins) : acc
     (Emph      ins)    -> Emph (cleanInlines ins) : acc
