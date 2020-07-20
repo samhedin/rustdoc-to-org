@@ -14,8 +14,9 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: Block -> Block
-runAll b =
-  fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock $ b
+runAll =
+   fixBulletList . makeTitle . flattenBlock . sections . header2 . cleanBlock
+
 
 makeTitle :: Block -> Block
 makeTitle (Div a ((Header 1 _ inlines) : bs)) = Div
