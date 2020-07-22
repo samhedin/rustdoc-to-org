@@ -20,11 +20,15 @@ A Pandoc filter that converts rust documentation to .org-files! This is still in
 
 ## Misc
 I use it with [Helm ag](https://github.com/bridgesense/emacs-helm-ag), setting dir to the output dir used during `batch_convert`.
+You can use the following command, if you have ripgrep installed!
 ``` emacs-lisp
-  (defun search-rustdoc ()
-    (interactive)
+  (defun search-rustdoc (search-term)
+    (interactive
+     (list
+      (read-string (format "search term, default (%s): " (thing-at-point 'symbol))
+                   nil nil (thing-at-point 'symbol))))
     (let ((helm-ag-base-command "rg  --smart-case --no-heading --color=never --line-number"))
-      (helm-ag "/home/sam/.emacs.d/private/rustdoc" (concat "\\*+ .\* " (read-string "Enter search term: ")))))
+      (helm-ag "/home/sam/.emacs.d/private/rustdoc" (concat "\\*+ .\* " search-term))))
 
   (global-set-key (kbd "C-x C-s") 'search-rustdoc)
   ```
