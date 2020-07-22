@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6c4b16a8cd6bf0aeae1f531f6bf472bc533beb29df7b1abb75485d344d4d32f4
+-- hash: a79e978d3ffc3a3389f0515df3c789a7014e5ffdb9f74de7437b446955d8f2da
 
 name:           rustdoc-to-org
 version:        0.1.0.0
@@ -15,10 +15,8 @@ author:         Author name here
 maintainer:     example@example.com
 copyright:      2020 Author name here
 license:        BSD3
-license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
-    README.md
     ChangeLog.md
 
 source-repository head
