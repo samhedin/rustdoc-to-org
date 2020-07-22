@@ -57,7 +57,7 @@ cleanBlock block = case block of
       == "toggle-wrapper"
     -> Null
 
-  (Div (_, [_, section], _) xs) | section == "small-section-header" -> Null
+  (Div (_, [_, section], _) _) | section == "small-section-header" -> Null
 
   (Para [Link _ [] _]) -> Null
 
@@ -90,13 +90,13 @@ cleanBlock block = case block of
   (Header 1 (panics, _, _) ins) | T.isPrefixOf "panics" panics ->
     Plain $ cleanInlines ins
 
-  (CodeBlock a t) -> Para [Str "#+BEGIN_SRC rust \n", Str t, Str "\n#+END_SRC"] -- This lets us use syntax highlighting
+  (CodeBlock _ t) -> Para [Str "#+BEGIN_SRC rust \n", Str t, Str "\n#+END_SRC"] -- This lets us use syntax highlighting
   (Header 1 _ [Str panics]) | panics == "Panics" -> Null
   (Para ins                ) -> Para $ cleanInlines ins
-  (Header 4 attr [Code _ _]) -> Null
+  (Header 4 _ [Code _ _]) -> Null
   (Header _ _    []        ) -> Null
   (Div _ [Header 4 _ [], Plain [Span _ []]]) -> Null
-  (Header 1 _ [Link _ [Str examples] target]) | examples == "Examples" -> Null
+  (Header 1 _ [Link _ [Str examples] _]) | examples == "Examples" -> Null
   (Header a attr ins    )    -> Header a attr (cleanInlines ins)
 
   (Div attr blocks      )    -> Div attr (map cleanBlock blocks)
@@ -114,7 +114,7 @@ cleanInlines = foldr
     SoftBreak          -> Str " " : acc
     (Link _ _ (url, _)) | url == "#required-sections" -> acc
     (Link _ (_ : (Span (_, [inner], _) _) : _) _) | inner == "inner" -> acc
-    (Link _ is target) -> Span emptyAttrs (cleanInlines is) : acc
+    (Link _ is _) -> Span emptyAttrs (cleanInlines is) : acc
     (Span _ []       ) -> acc
     (Span (_, [classname], _) _)
       | classname == "since" || classname == "emoji" -> acc
