@@ -1,7 +1,8 @@
-(make-variable-buffer-local
- (defvar rustdoc-to-org-search-directory ""
-   "Directory to search for org files"))
+(require 'helm-ag)
+ (defvar rustdoc-to-org-search-directory "/"
+   "Directory to search for converted org files")
 
+;;;###autoload
 (defun search-rustdoc (search-term)
   "Search directory for SEARCH-TERM.
 Provide `prefix-arg` to only search for Level 1 headers, which greatly limits the number of search results.
@@ -18,7 +19,7 @@ Useful if you want to search for the name of a Struct, Enum or Trait."
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
 
-    (helm-ag "/home/sam/.emacs.d/private/rustdoc" (concat regex search-term))))
+    (helm-ag rustdoc-to-org-search-directory (concat regex search-term))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-to-org-mode
