@@ -9,7 +9,8 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: [Block] -> [Block]
-runAll = map (fixBulletList . makeTitle . sections . cleanBlock)
+--runAll b = b
+runAll b = map (fixBulletList . makeTitle . sections . cleanBlock) b
 
 emptyAttrs :: (T.Text, [T.Text], [(T.Text, T.Text)])
 emptyAttrs = ("", [], [])
@@ -57,7 +58,7 @@ cleanBlock block = case block of
       == "toggle-wrapper"
     -> Null
 
-  (Div (_, [_, section], _) _) | section == "small-section-header" -> Null
+  (Div (_, [_, section], _) blocks) | section == "small-section-header" -> Div emptyAttrs $ map cleanBlock blocks
 
   (Para [Link _ [] _]) -> Null
 
@@ -141,7 +142,7 @@ mkNotice = foldr
 
 sections :: Block -> Block
 sections b = case b of
-  (Plain [Link _ _ (url, _), Code (id, _, _) code]) ->
+  (Plain [Link _ _ (_, _), Code (_, _, _) code]) ->
     Header 3 emptyAttrs [Code emptyAttrs code]
   (Div (_, classnames, _) blocks) | "stability" `elem` classnames ->
     Plain $ mkNotice blocks
