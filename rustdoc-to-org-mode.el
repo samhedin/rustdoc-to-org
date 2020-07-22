@@ -21,6 +21,18 @@ Useful if you want to search for the name of a Struct, Enum or Trait."
 
     (helm-ag rustdoc-to-org-search-directory (concat regex search-term))))
 
+(defun rustdoc-to-org--install-binary ()
+  "Install the rustdoc-to-org filter"
+  (interactive)
+  (shell-command "wget -O ~/.local/bin/rustdoc-to-org-exe  https://github.com/samhedin/rustdoc-to-org/releases/download/v0.2/rustdoc-to-org-exe &"))
+
+(defun rustdoc-to-org--convert-directory (directory)
+  (interactive)
+
+  (dolist (file (directory-files-recursively directory t))
+    (shell-command
+     (concat "pandoc " file " --filter ~/.local/bin/rustdoc-to-org-exe -o "  rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))))
+
 ;;;###autoload
 (define-minor-mode rustdoc-to-org-mode
   "Translate rust documentation to org mode, and browse it."
