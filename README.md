@@ -1,6 +1,5 @@
 # Rustdoc to org
 A Pandoc filter that converts rust documentation to .org-files! This is still in a very early state and there are many improvements to work on, hopefully this can end up helping someone.
-
 ![Demo with helm ag](demo.gif)
 ## Installation
 ### Binary
@@ -21,7 +20,7 @@ A Pandoc filter that converts rust documentation to .org-files! This is still in
 ## Misc
 I use it with [Helm ag](https://github.com/bridgesense/emacs-helm-ag):
 * Install ripgrep
-* Change the first argument to `helm-ag` to whatever outdir you used when running `batch_convert.sh`.
+* In the snippet below, change the first argument to `helm-ag` to whatever outdir you used when running `batch_convert.sh`.
 ``` emacs-lisp
 (defun search-rustdoc (search-term)
 "Search directory for SEARCH-TERM.
