@@ -23,16 +23,26 @@ I use it with [Helm ag](https://github.com/bridgesense/emacs-helm-ag):
 * Install ripgrep
 * Change the first argument to `helm-ag` to whatever outdir you used when running `batch_convert.sh`.
 ``` emacs-lisp
-  (defun search-rustdoc (search-term)
-    (interactive
-     (list
-      (read-string (format "search term, default (%s): " (thing-at-point 'symbol))
-                   nil nil (thing-at-point 'symbol))))
-    (let ((helm-ag-base-command "rg  --smart-case --no-heading --color=never --line-number"))
-      (helm-ag "/home/sam/.emacs.d/private/rustdoc" (concat "\\*+ [^-]\*" search-term))))
+(defun search-rustdoc (search-term)
+"Search directory for SEARCH-TERM.
+Provide `prefix-arg` to only search for Level 1 headers, which greatly limits the number of search results.
+Useful if you want to search for the name of a Struct, Enum or Trait."
+(interactive
+ (list
+  (read-string (format "search term, default (%s): " (thing-at-point 'symbol))
+               nil nil (thing-at-point 'symbol))))
 
-  (global-set-key (kbd "C-x C-s") 'search-rustdoc)
-  ```
+(let ((helm-ag-base-command "rg  --smart-case --no-heading --color=never --line-number")
+      (regex (if current-prefix-arg
+                 (progn
+                   (setq current-prefix-arg nil)
+                   "^\\* [^-]\*")
+               "\\* [^-]\*")))
+
+  (helm-ag "/home/sam/.emacs.d/private/rustdoc" (concat regex search-term))))
+
+(global-set-key (kbd "C-x C-s") 'search-rustdoc)
+```
 
 ## TODO
 * Figure out a way to get links working. All links point to .html files, they should be updated to point to .org files.
