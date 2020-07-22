@@ -1,3 +1,7 @@
+(make-variable-buffer-local
+ (defvar rustdoc-to-org-search-directory ""
+   "Directory to search for org files"))
+
 (defun search-rustdoc (search-term)
   "Search directory for SEARCH-TERM.
 Provide `prefix-arg` to only search for Level 1 headers, which greatly limits the number of search results.
@@ -28,5 +32,7 @@ Useful if you want to search for the name of a Struct, Enum or Trait."
 (add-hook 'rustic-mode-hook 'rustdoc-to-org-mode)
 ;;;###autoload
 (add-hook 'rust-mode-hook 'rustdoc-to-org-mode)
+;;;###autoload
+(add-hook 'emacs-lisp-mode-hook 'rustdoc-to-org-mode)
 
 (provide 'rustdoc-to-org-mode)
