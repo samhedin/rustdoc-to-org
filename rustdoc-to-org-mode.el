@@ -70,6 +70,16 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
                    (buffer-substring-no-properties (line-beginning-position)
                                                    (line-end-position))))
 
+(defun prev-line-is-header-p ()
+  (save-excursion
+    (previous-line)
+    (header-line-p)))
+
+(defun next-line-is-header-p ()
+  (save-excursion
+    (forward-line)
+    (header-line-p)))
+
 (defun remove-whitespace ()
   (let ((outputfile "/home/sam/.emacs.d/private/rustdoc/cleared.enum.Option.org"))
     (with-temp-file outputfile
@@ -80,12 +90,9 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
 
       (goto-char (point-min))
       (while (not (eobp))
-        (if (header-line-p)
-            (progn
-              (forward-line)
-              (when (current-line-empty-p)
-                (kill-whole-line)))
-          (forward-line))))))
+        (when (and (current-line-empty-p) (not (next-line-is-header-p)))
+                 (kill-whole-line))
+          (forward-line)))))
 
 (global-set-key (kbd "C-c C-r") (lambda () (interactive) (remove-whitespace)))
 
