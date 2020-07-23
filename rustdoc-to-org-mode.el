@@ -54,10 +54,40 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
       (insert-file-contents file)
       (when (< 10 (count-lines (point-min) (point-max)))
 
-        (start-process "convert" nil "pandoc"
-                              (shell-quote-argument file)
-                              "--filter"  "rustdoc-to-org-exe"
-                              "-o" (shell-quote-argument (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))))))))
+        (let (outputfile (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))
+          (start-process "convert" nil "pandoc"
+                         (shell-quote-argument file)
+                         "--filter"  "rustdoc-to-org-exe"
+                         "-o" (shell-quote-argument outputfile))))))))
+
+(defun current-line-empty-p ()
+  (save-excursion
+    (beginning-of-line)
+    (looking-at-p "[[:space:]]*$")))
+
+(defun header-line-p ()
+  (string-prefix-p "*"
+                   (buffer-substring-no-properties (line-beginning-position)
+                                                   (line-end-position))))
+
+(defun remove-whitespace ()
+  (let ((outputfile "/home/sam/.emacs.d/private/rustdoc/cleared.enum.Option.org"))
+    (with-temp-file outputfile
+      (insert-file-contents outputfile)
+
+      (dotimes (x 2)
+        (kill-whole-line))
+
+      (goto-char (point-min))
+      (while (not (eobp))
+        (if (header-line-p)
+            (progn
+              (forward-line)
+              (when (current-line-empty-p)
+                (kill-whole-line)))
+          (forward-line))))))
+
+(global-set-key (kbd "C-c C-r") (lambda () (interactive) (remove-whitespace)))
 
 ;;;###autoload
 (define-minor-mode rustdoc-to-org-mode
