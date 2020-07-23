@@ -5,9 +5,9 @@
 
 ;;;###autoload
 (defun search-rustdoc (search-term)
-  "Search directory for SEARCH-TERM.
-Provide `prefix-arg` to only search for Level 1 headers, which greatly limits the number of search results.
-Useful if you want to search for the name of a Struct, Enum or Trait."
+  "Search the rust documentation for SEARCH-TERM.
+Only searches in headers (structs, functions, traits, enums, etc) to limit the number of results.
+Provide `prefix-arg` to only search for Level 1 headers to limit the number of search results even further. This is useful if you want to search for the name of a struct, enum or trait."
   (interactive
    (list
     (read-string (format "search term, default (%s): " (thing-at-point 'symbol))
@@ -22,33 +22,41 @@ Useful if you want to search for the name of a Struct, Enum or Trait."
 
     (helm-ag (concat regex search-term) rustdoc-to-org-search-directory)))
 
+;;;###autoload
 (defun rustdoc-to-org--install-binary ()
   "Install the rustdoc-to-org filter"
   (let ((default-directory "~/.local/bin"))
   (url-copy-file "https://github.com/samhedin/rustdoc-to-org/releases/download/v0.2/rustdoc-to-org-exe" "rustdoc-to-org-exe")))
 
 ;;;###autoload
-(defun rustdoc-to-org--convert-directory (directory)
+(defun rustdoc-to-org--convert-directory (&optional directory)
+  "Convert all .html files in a directory and its subdirectories to org and place the files in `rustdoc-to-org-search-directory`"
   (interactive)
+
   (when (not (file-directory-p rustdoc-to-org-search-directory))
     (make-directory rustdoc-to-org-search-directory))
 
- (let ((default-directory "~/.local/bin/"))
+  (let ((default-directory "~/.local/bin/")
+        (dir (if directory
+                 directory
+               (read-directory-name "Directory with rust html docs (for std, look inside ~/.rustup/toolchains/<dir>/share/doc/rust/html/std): "))))
 
    (when (not (file-exists-p "rustdoc-to-org-exe"))
-     (if (string= "yes" (read-string "Could not find rustdoc-to-org-exe, would you like to install it? " "yes"))
+     (if (string= "yes" (read-string "Could not find rustdoc-to-org pandoc filter in your path, would you like to install it? " "yes"))
          (rustdoc-to-org--install-binary)
-       (message "could not find file!")))
+       (message "could not find pandoc filter, this will not work!")))
 
-  (dolist (file (directory-files-recursively directory ".html"))
+  (dolist (file (directory-files-recursively dir ".html"))
     (with-temp-buffer
       (insert-file-contents file)
       (when (< 10 (count-lines (point-min) (point-max)))
 
-        (start-process "convert" nil "pandoc"
+        (start-process "convert" "temp" "pandoc"
                               (shell-quote-argument file)
-                              "--filter" (shell-quote-argument "rustdoc-to-org-exe")
+                              "--filter"  "/home/sam/.local/bin/rustdoc-to-org-exe"
                               "-o" (shell-quote-argument (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))))))))
+
+(global-set-key (kbd "C-c C-s") '(lambda () (interactive) (rustdoc-to-org--convert-directory "/home/sam/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc/rust/html/std/")))
 
 ;;;###autoload
 (define-minor-mode rustdoc-to-org-mode
@@ -62,7 +70,5 @@ Useful if you want to search for the name of a Struct, Enum or Trait."
 (add-hook 'rustic-mode-hook 'rustdoc-to-org-mode)
 ;;;###autoload
 (add-hook 'rust-mode-hook 'rustdoc-to-org-mode)
-;;;###autoload
-(add-hook 'emacs-lisp-mode-hook 'rustdoc-to-org-mode)
 
 (provide 'rustdoc-to-org-mode)
