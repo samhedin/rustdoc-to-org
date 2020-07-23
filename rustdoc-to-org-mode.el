@@ -64,7 +64,7 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
   "Translate rust documentation to org mode, and browse it."
   :lighter " rustdoc in org"
   :keymap (let ((map (make-sparse-keymap)))
-            (define-key map (kbd "C-c C-r") 'search-rustdoc)
+            (define-key map (kbd "C-c C-d") 'search-rustdoc)
             map))
 
 ;;;###autoload
