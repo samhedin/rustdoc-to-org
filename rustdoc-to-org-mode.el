@@ -1,6 +1,6 @@
 (require 'helm-ag)
- (defvar rustdoc-to-org-search-directory "~/.emacs.d/private/rustdoc"
-   "Directory to search for converted org files")
+(defvar rustdoc-to-org-search-directory "~/.emacs.d/private/rustdoc"
+  "Directory to search for converted org files")
 
 ;;;###autoload
 (defun search-rustdoc (search-term)
@@ -30,15 +30,17 @@ Useful if you want to search for the name of a Struct, Enum or Trait."
   (interactive)
   (when (not (file-directory-p rustdoc-to-org-search-directory))
     (make-directory rustdoc-to-org-search-directory))
-  (setq async-shell-command-buffer 'new-buffer)
+
+ (let ((default-directory "~/.local/bin/"))
   (dolist (file (directory-files-recursively directory ".html"))
     (with-temp-buffer
       (insert-file-contents file)
       (when (< 10 (count-lines (point-min) (point-max)))
-        (async-shell-command
-         (concat "pandoc " file " --filter ~/.local/bin/rustdoc-to-org-exe -o "  rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))))))
 
-(rustdoc-to-org--convert-directory "/home/sam/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc/rust/html/std/")
+        (start-process "convert" nil "pandoc"
+                              (shell-quote-argument file)
+                              "--filter" (shell-quote-argument "rustdoc-to-org-exe")
+                              "-o" (shell-quote-argument (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))))))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-to-org-mode
