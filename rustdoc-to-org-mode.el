@@ -28,15 +28,15 @@ Useful if you want to search for the name of a Struct, Enum or Trait."
 ;;;###autoload
 (defun rustdoc-to-org--convert-directory (directory)
   (interactive)
+  (when (not (file-directory-p rustdoc-to-org-search-directory))
+    (make-directory rustdoc-to-org-search-directory))
+  (setq async-shell-command-buffer 'new-buffer)
   (dolist (file (directory-files-recursively directory ".html"))
-
     (with-temp-buffer
       (insert-file-contents file)
-      (when (< 11 (count-lines (point-min) (point-max)))
-        ))))
-
-        ;;(shell-command
-         ;;(concat "pandoc " file " --filter ~/.local/bin/rustdoc-to-org-exe -o "  rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org")))))
+      (when (< 10 (count-lines (point-min) (point-max)))
+        (async-shell-command
+         (concat "pandoc " file " --filter ~/.local/bin/rustdoc-to-org-exe -o "  rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))))))
 
 (rustdoc-to-org--convert-directory "/home/sam/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc/rust/html/std/")
 
