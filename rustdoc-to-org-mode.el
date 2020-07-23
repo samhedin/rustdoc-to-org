@@ -26,7 +26,8 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
 (defun rustdoc-to-org--install-binary ()
   "Install the rustdoc-to-org filter"
   (let ((default-directory "~/.local/bin"))
-  (url-copy-file "https://github.com/samhedin/rustdoc-to-org/releases/download/v0.2/rustdoc-to-org-exe" "rustdoc-to-org-exe")))
+    (url-copy-file "https://github.com/samhedin/rustdoc-to-org/releases/download/v0.2/rustdoc-to-org-exe" "rustdoc-to-org-exe")
+    (start-process "make_executable" nil "chmod" "+x" "rustdoc-to-org-exe")))
 
 ;;;###autoload
 (defun rustdoc-to-org--convert-directory (&optional directory)
@@ -39,24 +40,24 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
   (let ((default-directory "~/.local/bin/")
         (dir (if directory
                  directory
-               (read-directory-name "Directory with rust html docs (for std, look inside ~/.rustup/toolchains/<dir>/share/doc/rust/html/std): "))))
+               (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<dir>/share/doc/rust/html/std): "))))
 
    (when (not (file-exists-p "rustdoc-to-org-exe"))
      (if (string= "yes" (read-string "Could not find rustdoc-to-org pandoc filter in your path, would you like to install it? " "yes"))
          (rustdoc-to-org--install-binary)
        (message "could not find pandoc filter, this will not work!")))
 
+   (message "Batch converting files, this might take a while!")
+
   (dolist (file (directory-files-recursively dir ".html"))
     (with-temp-buffer
       (insert-file-contents file)
       (when (< 10 (count-lines (point-min) (point-max)))
 
-        (start-process "convert" "temp" "pandoc"
+        (start-process "convert" nil "pandoc"
                               (shell-quote-argument file)
-                              "--filter"  "/home/sam/.local/bin/rustdoc-to-org-exe"
+                              "--filter"  "rustdoc-to-org-exe"
                               "-o" (shell-quote-argument (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))))))))
-
-(global-set-key (kbd "C-c C-s") '(lambda () (interactive) (rustdoc-to-org--convert-directory "/home/sam/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc/rust/html/std/")))
 
 ;;;###autoload
 (define-minor-mode rustdoc-to-org-mode
