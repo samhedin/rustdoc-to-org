@@ -1,5 +1,4 @@
 ;; -*- lexical-binding: t -*-
-(setq lexical-binding t)
 (require 'helm-ag)
 (require 'url)
 (defvar rustdoc-to-org-search-directory "~/.emacs.d/private/rustdoc"
@@ -54,19 +53,20 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
   (dolist (file (directory-files-recursively dir ".html"))
     (with-temp-buffer
       (insert-file-contents file)
-      (when (< 10 (count-lines (point-min) (point-max)))
+      (when (< 10 (count-lines (point-min) (point-max))) ;; If the file is less than 10 lines, it is (probably?) just a file that redirects, so no reason to convert it.
 
         (let* ((outputfile (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))
+
+               ;;Save the outputfilename in a closure that will be called when the conversion is finished
                (callback (lambda (p e)
                            (remove-whitespace outputfile)))
+
           (process (start-process "convert" nil "pandoc"
                                   (shell-quote-argument file)
                                   "--filter"  "rustdoc-to-org-exe"
                                   "-o" (shell-quote-argument outputfile))))
 
           (set-process-sentinel process callback)))))))
-
-(global-set-key (kbd "C-c C-s") '(lambda () (interactive) (rustdoc-to-org--convert-directory "/home/sam/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc/rust/html/std/")))
 
 ;;;###autoload
 (defun current-line-empty-p ()
@@ -87,12 +87,12 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
     (with-temp-file outputfile
       (insert-file-contents outputfile)
 
-      (dotimes (x 2)
+      (dotimes (x 2) ;; There is some junk at the start of the file after conversion, this deletes it.
         (kill-whole-line))
 
       (goto-char (point-min))
       (while (not (eobp))
-        (when (and (current-line-empty-p) (not (next-line-is-header-p)))
+        (when (and (current-line-empty-p) (not (next-line-is-header-p))) ;;Delete all whitespace, unless the next line is a header.
                  (kill-whole-line))
           (forward-line))))
 
