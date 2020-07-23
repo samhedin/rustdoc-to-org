@@ -1,4 +1,5 @@
 (require 'helm-ag)
+(require 'url)
 (defvar rustdoc-to-org-search-directory "~/.emacs.d/private/rustdoc"
   "Directory to search for converted org files")
 
@@ -23,7 +24,8 @@ Useful if you want to search for the name of a Struct, Enum or Trait."
 
 (defun rustdoc-to-org--install-binary ()
   "Install the rustdoc-to-org filter"
-  (shell-command "wget -O ~/.local/bin/rustdoc-to-org-exe  https://github.com/samhedin/rustdoc-to-org/releases/download/v0.2/rustdoc-to-org-exe &"))
+  (let ((default-directory "~/.local/bin"))
+  (url-copy-file "https://github.com/samhedin/rustdoc-to-org/releases/download/v0.2/rustdoc-to-org-exe" "rustdoc-to-org-exe")))
 
 ;;;###autoload
 (defun rustdoc-to-org--convert-directory (directory)
@@ -32,6 +34,12 @@ Useful if you want to search for the name of a Struct, Enum or Trait."
     (make-directory rustdoc-to-org-search-directory))
 
  (let ((default-directory "~/.local/bin/"))
+
+   (when (not (file-exists-p "rustdoc-to-org-exe"))
+     (if (string= "yes" (read-string "Could not find rustdoc-to-org-exe, would you like to install it? " "yes"))
+         (rustdoc-to-org--install-binary)
+       (message "could not find file!")))
+
   (dolist (file (directory-files-recursively directory ".html"))
     (with-temp-buffer
       (insert-file-contents file)
