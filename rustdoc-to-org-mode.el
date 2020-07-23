@@ -54,17 +54,22 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
       (insert-file-contents file)
       (when (< 10 (count-lines (point-min) (point-max)))
 
-        (let (outputfile (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))
+        (let ((outputfile (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org")))
           (start-process "convert" nil "pandoc"
                          (shell-quote-argument file)
                          "--filter"  "rustdoc-to-org-exe"
-                         "-o" (shell-quote-argument outputfile))))))))
+                         "-o" (shell-quote-argument outputfile))
+          ))))))
 
+(global-set-key (kbd "C-c C-s") '(lambda () (interactive) (rustdoc-to-org--convert-directory "/home/sam/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc/rust/html/std/")))
+
+;;;###autoload
 (defun current-line-empty-p ()
   (save-excursion
     (beginning-of-line)
     (looking-at-p "[[:space:]]*$")))
 
+;;;###autoload
 (defun next-line-is-header-p ()
   (save-excursion
     (forward-line)
@@ -72,6 +77,7 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
                      (buffer-substring-no-properties (line-beginning-position)
                                                      (line-end-position)))))
 
+;;;###autoload
 (defun remove-whitespace (outputfile)
     (with-temp-file outputfile
       (insert-file-contents outputfile)
