@@ -65,23 +65,14 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
     (beginning-of-line)
     (looking-at-p "[[:space:]]*$")))
 
-(defun header-line-p ()
-  (string-prefix-p "*"
-                   (buffer-substring-no-properties (line-beginning-position)
-                                                   (line-end-position))))
-
-(defun prev-line-is-header-p ()
-  (save-excursion
-    (previous-line)
-    (header-line-p)))
-
 (defun next-line-is-header-p ()
   (save-excursion
     (forward-line)
-    (header-line-p)))
+    (string-prefix-p "*"
+                     (buffer-substring-no-properties (line-beginning-position)
+                                                     (line-end-position)))))
 
-(defun remove-whitespace ()
-  (let ((outputfile "/home/sam/.emacs.d/private/rustdoc/cleared.enum.Option.org"))
+(defun remove-whitespace (outputfile)
     (with-temp-file outputfile
       (insert-file-contents outputfile)
 
@@ -92,9 +83,7 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
       (while (not (eobp))
         (when (and (current-line-empty-p) (not (next-line-is-header-p)))
                  (kill-whole-line))
-          (forward-line)))))
-
-(global-set-key (kbd "C-c C-r") (lambda () (interactive) (remove-whitespace)))
+          (forward-line))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-to-org-mode
