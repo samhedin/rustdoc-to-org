@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t -*-
+(setq lexical-binding t)
 (require 'helm-ag)
 (require 'url)
 (defvar rustdoc-to-org-search-directory "~/.emacs.d/private/rustdoc"
@@ -54,12 +56,15 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
       (insert-file-contents file)
       (when (< 10 (count-lines (point-min) (point-max)))
 
-        (let ((outputfile (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org")))
-          (start-process "convert" nil "pandoc"
-                         (shell-quote-argument file)
-                         "--filter"  "rustdoc-to-org-exe"
-                         "-o" (shell-quote-argument outputfile))
-          ))))))
+        (let* ((outputfile (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))
+               (callback (lambda (p e)
+                           (remove-whitespace outputfile)))
+          (process (start-process "convert" nil "pandoc"
+                                  (shell-quote-argument file)
+                                  "--filter"  "rustdoc-to-org-exe"
+                                  "-o" (shell-quote-argument outputfile))))
+
+          (set-process-sentinel process callback)))))))
 
 (global-set-key (kbd "C-c C-s") '(lambda () (interactive) (rustdoc-to-org--convert-directory "/home/sam/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc/rust/html/std/")))
 
