@@ -21,7 +21,7 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
 
-    (helm-ag (concat regex search-term) rustdoc-to-org-search-directory)))
+    (helm-ag rustdoc-to-org-search-directory (concat regex search-term))))
 
 ;;;###autoload
 (defun rustdoc-to-org--install-binary ()
