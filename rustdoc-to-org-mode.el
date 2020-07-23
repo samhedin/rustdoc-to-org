@@ -1,5 +1,5 @@
 (require 'helm-ag)
- (defvar rustdoc-to-org-search-directory "/"
+ (defvar rustdoc-to-org-search-directory "~/.emacs.d/private/rustdoc"
    "Directory to search for converted org files")
 
 ;;;###autoload
@@ -19,19 +19,26 @@ Useful if you want to search for the name of a Struct, Enum or Trait."
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
 
-    (helm-ag rustdoc-to-org-search-directory (concat regex search-term))))
+    (helm-ag (concat regex search-term) rustdoc-to-org-search-directory)))
 
 (defun rustdoc-to-org--install-binary ()
   "Install the rustdoc-to-org filter"
-  (interactive)
   (shell-command "wget -O ~/.local/bin/rustdoc-to-org-exe  https://github.com/samhedin/rustdoc-to-org/releases/download/v0.2/rustdoc-to-org-exe &"))
 
+;;;###autoload
 (defun rustdoc-to-org--convert-directory (directory)
   (interactive)
+  (dolist (file (directory-files-recursively directory ".html"))
 
-  (dolist (file (directory-files-recursively directory t))
-    (shell-command
-     (concat "pandoc " file " --filter ~/.local/bin/rustdoc-to-org-exe -o "  rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (when (< 11 (count-lines (point-min) (point-max)))
+        ))))
+
+        ;;(shell-command
+         ;;(concat "pandoc " file " --filter ~/.local/bin/rustdoc-to-org-exe -o "  rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org")))))
+
+(rustdoc-to-org--convert-directory "/home/sam/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc/rust/html/std/")
 
 ;;;###autoload
 (define-minor-mode rustdoc-to-org-mode
