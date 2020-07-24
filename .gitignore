@@ -27,3 +27,4 @@ cabal.project.local~
 /native
 /debug_files/shared.rs.org
 /debug_files/filterednative
+/debug_files/option.org

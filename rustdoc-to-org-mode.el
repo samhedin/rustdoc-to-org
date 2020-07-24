@@ -87,8 +87,13 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
     (with-temp-file outputfile
       (insert-file-contents outputfile)
 
-      (dotimes (x 2) ;; There is some junk at the start of the file after conversion, this deletes it.
-        (kill-whole-line))
+      ;; There is some junk at the start of the file after conversion, this deletes it.
+        (forward-line)
+        (when (current-line-empty-p)
+          (progn
+            (previous-line)
+            (kill-whole-line)))
+        (kill-whole-line)
 
       (goto-char (point-min))
       (while (not (eobp))

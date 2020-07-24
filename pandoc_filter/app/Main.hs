@@ -183,7 +183,7 @@ sections b = case b of
 fixBulletList :: Block -> Block
 fixBulletList (BulletList bullets) = BulletList $ foldr
   (\x acc -> case x of
-    ((Div _ ((Header _ _ bullet) : bs)) : divs) ->
+    ((Div _ ((Header _ _ bullet) : bs)) : _divs) ->
       (head bs : Plain bullet : tail bs) : acc -- TODO notice that this is ignoring divs, may lead to missing elements in the future?
     _ -> x : acc
   )
