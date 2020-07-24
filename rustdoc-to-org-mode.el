@@ -25,10 +25,9 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
 
 ;;;###autoload
 (defun rustdoc-to-org--install-binary ()
-  "Install or update the rustdoc-to-org filter"
-  (interactive)
+  "Install the rustdoc-to-org filter"
   (let ((default-directory "~/.local/bin"))
-    (url-copy-file "https://github.com/samhedin/rustdoc-to-org/releases/download/v0.2/rustdoc-to-org-exe" "rustdoc-to-org-exe" 'replace)
+    (url-copy-file "https://github.com/samhedin/rustdoc-to-org/releases/download/v0.2/rustdoc-to-org-exe" "rustdoc-to-org-exe")
     (start-process "make_executable" nil "chmod" "+x" "rustdoc-to-org-exe")))
 
 ;;;###autoload
