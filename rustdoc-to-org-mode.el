@@ -52,6 +52,8 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
    (message "Batch converting files, this might take a while!")
 
   (dolist (file (directory-files-recursively dir ".html"))
+    (message "converting %s" file)
+    (sleep-for 0.08)
     (with-temp-buffer
       (insert-file-contents file)
       (when (< 10 (count-lines (point-min) (point-max))) ;; If the file is less than 10 lines, it is (probably?) just a file that redirects, so no reason to convert it.

@@ -30,3 +30,11 @@ constant:
 	cd debug_files ;\
 	pandoc constant.ARCH.html -t json | rustdoc-to-org-exe | pandoc -f json -t native -o filterednative ;\
 	pandoc -f native filterednative -o constant.arch.org
+
+notice:
+	cd pandoc_filter; \
+	stack install; \
+	cd .. ;\
+	cd debug_files ;\
+	pandoc struct.UnixDatagram.html -t json | rustdoc-to-org-exe | pandoc -f json -t native -o filterednative ;\
+	pandoc -f native filterednative -o datagram.org
