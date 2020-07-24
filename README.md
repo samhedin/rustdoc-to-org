@@ -12,6 +12,10 @@ A Pandoc filter that converts rust documentation to .org-files! This is still in
 * Run `M-x rustdoc-to-org--convert-directory` to convert all `.html` files in a directory. Answer yes if it asks if you want to download the binary.
 * You can now use `C-c C-d` to run `search-rustdoc` if you are in `Rust mode` or `Rustic mode`.
 
+## Updates
+
+Update `rustdoc-to-org-mode.el`, then do `M-x rustdoc-to-org--install-binary` to make sure you have the latest filter.
+
 ## Development
 
 * Install Haskell Stack https://docs.haskellstack.org/en/stable/README/
