@@ -9,7 +9,7 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: [Block] -> [Block]
---runAll b = b
+-- runAll b = b
 runAll b = map (fixBulletList . makeTitle . sections . cleanBlock) b
 
 emptyAttrs :: (T.Text, [T.Text], [(T.Text, T.Text)])
@@ -91,6 +91,7 @@ cleanBlock block = case block of
   (Header 1 (panics, _, _) ins) | T.isPrefixOf "panics" panics ->
     Plain $ cleanInlines ins
 
+  (CodeBlock (_, [linenumbers], _) _) | linenumbers == "line-numbers" -> Null
   (CodeBlock _ t) -> Para [Str "#+BEGIN_SRC rust \n", Str t, Str "\n#+END_SRC"] -- This lets us use syntax highlighting
   (Header 1 _ [Str panics]) | panics == "Panics" -> Null
   (Para ins                ) -> Para $ cleanInlines ins

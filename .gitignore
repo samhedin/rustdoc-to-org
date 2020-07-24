@@ -25,3 +25,4 @@ cabal.project.local~
 /filterednative
 /AsRef.org
 /native
+/debug_files/shared.rs.org
