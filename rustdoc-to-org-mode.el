@@ -58,10 +58,10 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
       (insert-file-contents file)
       (when (< 10 (count-lines (point-min) (point-max))) ;; If the file is less than 10 lines, it is (probably?) just a file that redirects, so no reason to convert it.
 
-        (let* ((outputfile (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-relative-name file dir)) ".org"))
-               ;; Save the outputfilename in a closure that will be called when the conversion is finished
+        (let* ((outputfile (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))
+
+               ;;Save the outputfilename in a closure that will be called when the conversion is finished
                (callback (lambda (p e)
-                           (make-directory (file-name-directory outputfile) t)
                            (remove-whitespace outputfile)))
 
           (process (start-process "convert" nil "pandoc"
