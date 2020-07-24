@@ -28,3 +28,5 @@ cabal.project.local~
 /debug_files/shared.rs.org
 /debug_files/filterednative
 /debug_files/option.org
+/debug_files/AsRef.org
+/debug_files/constant.arch.org

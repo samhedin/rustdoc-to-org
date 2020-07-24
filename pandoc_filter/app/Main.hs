@@ -9,7 +9,8 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: [Block] -> [Block]
-runAll b = map (fixBulletList . makeTitle . sections . cleanBlock) b
+--runAll b = b
+runAll b = map (sections . cleanBlock) b
 
 emptyAttrs :: (T.Text, [T.Text], [(T.Text, T.Text)])
 emptyAttrs = ("", [], [])
@@ -102,7 +103,7 @@ cleanBlock block = case block of
 
   (Div attr blocks      )    -> Div attr (map cleanBlock blocks)
   (BlockQuote blocks    )    -> BlockQuote (map cleanBlock blocks)
-  (BulletList blocklists)    -> BulletList $ map (map cleanBlock) blocklists
+  (BulletList blocklists)    -> BulletList blocklists
 
   _                          -> block
 
@@ -110,6 +111,7 @@ cleanBlock block = case block of
 cleanInlines :: [Inline] -> [Inline]
 cleanInlines = foldr
   (\x acc -> case x of
+    Str src | src == "[src]" -> acc
     Space              -> Str " " : acc
     LineBreak          -> Str " " : acc
     SoftBreak          -> Str " " : acc
@@ -155,11 +157,6 @@ sections b = case b of
 
   (Header l _ ins) -> Header (l - 1) emptyAttrs $ foldInlines ins
 
-  (Plain (_ : [])) -> Null
-
-  (Plain (hidden : sections')) ->
-    Div emptyAttrs [Header 3 emptyAttrs sections', Plain [hidden]]
-
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
 
@@ -178,15 +175,3 @@ sections b = case b of
       x               -> x : acc
     )
     []
-
---Bulletlists become super strange when imported. For example, the first word becomes last in the list so we have to take it and put it in the front.
-fixBulletList :: Block -> Block
-fixBulletList (BulletList bullets) = BulletList $ foldr
-  (\x acc -> case x of
-    ((Div _ ((Header _ _ bullet) : bs)) : _divs) ->
-      (head bs : Plain bullet : tail bs) : acc -- TODO notice that this is ignoring divs, may lead to missing elements in the future?
-    _ -> x : acc
-  )
-  []
-  bullets
-fixBulletList x = x
