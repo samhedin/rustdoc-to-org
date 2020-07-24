@@ -51,25 +51,32 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
    (message "Batch converting files, this might take a while!")
 
   (dolist (file (directory-files-recursively dir ".html"))
-    (with-temp-buffer
-      (insert-file-contents file)
-      (when (< 10 (count-lines (point-min) (point-max))) ;; If the file is less than 10 lines, it is (probably?) just a file that redirects, so no reason to convert it.
+    (when (< 10 (count-lines (point-min) (point-max)))
+      (progn
+        (sleep-for 0.05)
+        (convert-file dir file))))
+  (message "Almost done!")))
 
-        (let* ((outputfile (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-name-nondirectory file)) ".org"))
+(defun convert-file (dir file)
+  (let* ((outputfile (file-truename (concat rustdoc-to-org-search-directory "/" (file-name-sans-extension (file-relative-name file dir)) ".org")))
 
-               ;;Save the outputfilename in a closure that will be called when the conversion is finished
-               (callback (lambda (p e)
-                           (remove-whitespace outputfile)))
+         ;; Save the outputfilename in a closure that will be called when the conversion is finished
+         (callback (lambda (p e)
+                     (message "converting %s " file)
+                     (remove-whitespace outputfile)))
 
-          (process (start-process "convert" nil "pandoc"
-                                  (shell-quote-argument file)
-                                  "--filter"  "rustdoc-to-org-exe"
-                                  "-o" (shell-quote-argument outputfile))))
+         (process (progn
+                    (make-directory (file-name-directory outputfile) t)
+                    (start-process "convert" "*pandoc-log*" "pandoc"
+                                   (shell-quote-argument file)
+                                   "--filter"  "rustdoc-to-org-exe"
+                                   "-o" (shell-quote-argument outputfile)))))
 
-          (set-process-sentinel process callback)))))))
+    (set-process-sentinel process callback)))
 
 ;;;###autoload
 (defun remove-whitespace (outputfile)
+  (condition-case nil
   (with-temp-file outputfile
     (insert-file-contents outputfile)
 
@@ -77,7 +84,8 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
     (while (not (eobp))
       (when (and (current-line-empty-p) (not (next-line-is-header-p))) ;;Delete all whitespace, unless the next line is a header.
         (kill-whole-line))
-      (forward-line))))
+      (forward-line)))
+  (error (message "Could not remove whitespace from %s " outputfile))))
 
 ;;;###autoload
 (defun current-line-empty-p ()
