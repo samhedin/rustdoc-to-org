@@ -52,7 +52,7 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
    (message "Batch converting files, this might take a while!")
 
   (dolist (file (directory-files-recursively dir ".html"))
-    (sleep-for 0.08)
+    (sleep-for 0.1)
     (with-temp-buffer
       (insert-file-contents file)
       (when (< 10 (count-lines (point-min) (point-max))) ;; If the file is less than 10 lines, it is (probably?) just a file that redirects, so no reason to convert it.
@@ -63,7 +63,7 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
          ;; Save the outputfilename in a closure that will be called when the conversion is finished
          (callback (lambda (p e)
                      (make-directory (file-name-directory outputfile) t)
-                     (message "converting %s to %s " file outputfile)
+                     (message "converting %s " file)
                      (remove-whitespace outputfile)))
 
 
