@@ -9,7 +9,6 @@ main :: IO ()
 main = toJSONFilter runAll
 
 runAll :: [Block] -> [Block]
--- runAll b = b
 runAll b = map (fixBulletList . makeTitle . sections . cleanBlock) b
 
 emptyAttrs :: (T.Text, [T.Text], [(T.Text, T.Text)])
@@ -155,8 +154,11 @@ sections b = case b of
   (Header 1 _ ins) -> Header 1 emptyAttrs $ foldInlines ins
 
   (Header l _ ins) -> Header (l - 1) emptyAttrs $ foldInlines ins
-  (Plain (hidden : sections)) ->
-    Div emptyAttrs [Header 3 emptyAttrs sections, Plain [hidden]]
+
+  (Plain (_ : [])) -> Null
+
+  (Plain (hidden : sections')) ->
+    Div emptyAttrs [Header 3 emptyAttrs sections', Plain [hidden]]
 
   (Div (_, [docblock], _) docs) | docblock == "docblock" -> Div emptyAttrs docs
   _ -> b
