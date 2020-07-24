@@ -69,6 +69,17 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
           (set-process-sentinel process callback)))))))
 
 ;;;###autoload
+(defun remove-whitespace (outputfile)
+  (with-temp-file outputfile
+    (insert-file-contents outputfile)
+
+    (goto-char (point-min))
+    (while (not (eobp))
+      (when (and (current-line-empty-p) (not (next-line-is-header-p))) ;;Delete all whitespace, unless the next line is a header.
+        (kill-whole-line))
+      (forward-line))))
+
+;;;###autoload
 (defun current-line-empty-p ()
   (save-excursion
     (beginning-of-line)
@@ -82,24 +93,6 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
                      (buffer-substring-no-properties (line-beginning-position)
                                                      (line-end-position)))))
 
-;;;###autoload
-(defun remove-whitespace (outputfile)
-    (with-temp-file outputfile
-      (insert-file-contents outputfile)
-
-      ;; There is some junk at the start of the file after conversion, this deletes it.
-        (forward-line)
-        (when (current-line-empty-p)
-          (progn
-            (previous-line)
-            (kill-whole-line)))
-        (kill-whole-line)
-
-      (goto-char (point-min))
-      (while (not (eobp))
-        (when (and (current-line-empty-p) (not (next-line-is-header-p))) ;;Delete all whitespace, unless the next line is a header.
-                 (kill-whole-line))
-          (forward-line))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-to-org-mode
