@@ -21,8 +21,6 @@ A Pandoc filter that converts rust documentation to .org-files! This is still in
 
 * Figure out a way to get links working. All links point to .html files, they should be updated to point to .org files.
 * Make code not awful and not slow.
-* Save partial directory path after conversion
-* Figure out the issue of async conversion
 * Fill out this list.
 
 All suggestions, comments and more are welcomed!
