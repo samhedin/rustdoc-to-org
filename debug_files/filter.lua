@@ -1,27 +1,21 @@
-words = 0
-
-wordcount = {
-  Str = function(el)
-    -- we don't count a word if it's entirely punctuation:
-    if el.text:match("%P") then
-      words = words + 1
+local function elem(tab, val)
+  for index, value in ipairs(tab) do
+    if value == val then
+      return true
     end
-  end,
-
-  Code = function(el)
-    _,n = el.text:gsub("%S+","")
-    words = words + n
-  end,
-
-  CodeBlock = function(el)
-    _,n = el.text:gsub("%S+","")
-    words = words + n
   end
-}
+  return false
+end
 
-function Pandoc(el)
-  -- skip metadata, just count body:
-  pandoc.walk_block(pandoc.Div(el.blocks), wordcount)
-  print(words .. " words in body")
-  os.exit(0)
+Div = function(el)
+  if elem(el.classes, "shortcuts") or elem(el.classes, "sidebar-elems") or elem(el.classes, "theme-picker") or elem(el.classes, "infos") or elem(el.classes, "search-container")  or elem(el.classes,"sidebar-menu")   or elem(el.classes, "logo-container")  or elem(el.classes, "toggle-wrapper") then
+    return pandoc.Null
+  else
+    return el
+  end
+end
+
+
+Header = function(el)
+  return pandoc.Header(5, el.content)
 end
