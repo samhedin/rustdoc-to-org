@@ -10,31 +10,10 @@ main = toJSONFilter runAll
 
 runAll :: [Block] -> [Block]
 --runAll b = b
-runAll b = map (sections . cleanBlock) b
+runAll = map (sections . cleanBlock)
 
 emptyAttrs :: (T.Text, [T.Text], [(T.Text, T.Text)])
 emptyAttrs = ("", [], [])
-
-makeTitle :: Block -> Block
-makeTitle block = case block of
-  (Div _ ((Header 1 _ headerData) : bs)) -> Div
-    emptyAttrs
-    ( Header
-        1
-        emptyAttrs
-        (cleanInlines
-          (filter
-            (\case
-              (Span (_, [inband], _) _) | inband == "in-band" -> True -- The title information we wish to save and show is in this Span.
-              _ -> False
-            )
-            headerData
-          )
-        )
-    : bs
-    )
-
-  _ -> block
 
 -- cleanBlock removes things like the sidebar, and calls cleanInlines to remove whitespace and more
 cleanBlock :: Block -> Block
