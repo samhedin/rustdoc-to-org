@@ -14,7 +14,7 @@ cleaninline = {
   end,
   SoftBreak = function(el)
     return pandoc.Str(" ")
-    end,
+  end,
 }
 
 cleanblocks = {
@@ -83,9 +83,13 @@ Div = function(el)
 end,
 
 Plain = function(el)
+  for i,v in ipairs(el.content) do
+    if v.t == "Span" and v.content[1] and v.content[1].t == "Str" and v.content[1].text == "Run" then
+      return pandoc.Null
+    end
+  end
   return pandoc.Plain(cleaninlines(el.content))
 end,
-
 
 Para = function(el)
   return pandoc.Para(cleaninlines(el.content))
