@@ -32,10 +32,10 @@ Header = function(el)
     return pandoc.Null
   end
   if el.classes:includes("small-section-header") then
-    return pandoc.Header(1, el.content)
+    return pandoc.Header(1, pandoc.List:new{el.content[1]})
   end
   if el.classes:includes("impl") then
-    return pandoc.Header(2, el.content)
+    return pandoc.Header(2, pandoc.List:new{el.content[1]})
   end
 
   if el.classes:includes("method") then
