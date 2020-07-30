@@ -94,6 +94,8 @@ Div = function(el)
     return pandoc.Null
   elseif el.classes:includes("variant") and el.classes:includes("small-section-header") then
     return pandoc.List:new({pandoc.Header(2, el.content[1].content[2])})
+  elseif el.classes:includes("section") and el.classes:includes("content") then
+    return pandoc.Div(el.content)
   end
 end,
 
@@ -110,13 +112,17 @@ Plain = function(el)
   end
 end,
 
-
-
 CodeBlock = function(el)
   if el.classes:includes("line-numbers") then
     return pandoc.Null
   else
     return pandoc.Para(pandoc.Str("#+BEGIN_SRC rust \n" .. el.text .. "\n#+END_SRC"))
+  end
+end,
+
+Para = function(el)
+  if el.content[1] and el.content[1].t == "Span" and tablelength(el.content[1].content) == 0 then
+    return pandoc.Null
   end
 end,
 
