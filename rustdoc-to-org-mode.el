@@ -34,8 +34,8 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
 
 ;;;###autoload
 (defun rustdoc-to-org--convert-directory (&optional directory)
-  "Convert all .html files in `DIRECTORY' and its subdirectories to org and place the files in `rustdoc-to-org-search-directory`
-If `DIRECTORY` is not given, prompts user to select directory."
+  "Convert all .html files in DIRECTORY and its subdirectories to org and place the files in `rustdoc-to-org-search-directory`
+If DIRECTORY is not given, prompts user to select directory."
   (interactive)
   (when (not (file-directory-p rustdoc-to-org-search-directory))
     (make-directory rustdoc-to-org-search-directory))
