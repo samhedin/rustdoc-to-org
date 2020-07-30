@@ -92,7 +92,7 @@ end,
 Div = function(el)
   if el.classes:includes("shortcuts") or el.classes:includes("sidebar-elems") or el.classes:includes("theme-picker") or el.classes:includes("infos") or el.classes:includes("search-container")  or el.classes:includes("sidebar-menu") or el.classes:includes("logo-container") or el.classes:includes("toggle-wrapper") then
     return pandoc.Null
-  elseif el.classes:includes("variant") and el.classes:includes("small-section-header") and el.content[1] and tablelength(el.content[1]) > 2 then
+  elseif el.classes:includes("variant") and el.classes:includes("small-section-header") and el.content[1] and tablelength(el.content[1].content) > 1 then
     return pandoc.List:new({pandoc.Header(2, el.content[1].content[2])})
   elseif (el.classes:includes("section") and el.classes:includes("content") or el.attr.identifier == "implementors-list") then
     return pandoc.Div(el.content)
@@ -105,7 +105,7 @@ Plain = function(el)
       return pandoc.Null
     end
 
-    if v.t == "Span" and (v.classes:includes("loading-content") or tablelength(v.content) == 0) then
+    if v.t == "Span" and (v.classes:includes("loading-content") or tablelength(v.content) == 0) and tablelength(el.content) == 1 then --bug here!
       return pandoc.Null
     end
 
