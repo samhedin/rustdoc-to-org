@@ -5,6 +5,14 @@
   "Directory to search for converted org files")
 
 ;;;###autoload
+(defun rustdoc-to-org--get-filter ()
+  "Install or update the rustdoc-to-org filter"
+  (interactive)
+  (let ((default-directory "~/.local/bin"))
+    (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/lua/filter.lua"
+                   "filter.lua" t)))
+
+;;;###autoload
 (defun search-rustdoc (search-term)
   "Search the rust documentation for SEARCH-TERM.
 Only searches in headers (structs, functions, traits, enums, etc) to limit the number of results.
@@ -36,6 +44,7 @@ If `DIRECTORY` is not given, prompts user to select directory."
                  directory
                (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<dir>/share/doc/rust/html/std): "))))
 
+    (rustdoc-to-org--get-filter)
     (message "Batch converting files, this might take a while!")
 
     (dolist (file (directory-files-recursively dir ".html"))
@@ -63,11 +72,10 @@ If `DIRECTORY` is not given, prompts user to select directory."
                                    "pandoc"
                                    (shell-quote-argument file)
                                    "--lua-filter"
-                                   "/home/sam/github/rustdoc-to-org/debug_files/filter.lua"
+                                   (file-truename (concat default-directory "filter.lua"))
                                    "-o"
                                    (shell-quote-argument outputfile)))))
     (set-process-sentinel process callback)))
-
 
 ;;;###autoload
 (defun remove-whitespace (outputfile)
@@ -106,9 +114,8 @@ If `DIRECTORY` is not given, prompts user to select directory."
             (define-key map (kbd "C-#") 'search-rustdoc)
             map))
 
-;;;###autoload
 (add-hook 'rustic-mode-hook 'rustdoc-to-org-mode)
-;;;###autoload
 (add-hook 'rust-mode-hook 'rustdoc-to-org-mode)
+(add-hook 'org-mode-hook 'rustdoc-to-org-mode)
 
 (provide 'rustdoc-to-org-mode)
