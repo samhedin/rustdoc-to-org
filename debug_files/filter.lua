@@ -4,6 +4,17 @@ local function cleaninlines(content)
   end
   return content
 end
+function tablelength(T)
+  local count = 0
+  for _ in pairs(T) do count = count + 1 end
+  return count
+end
+
+Span = function(el)
+  if el.classes:includes("since") or el.classes:includes("inner") or tablelength(el.content) == 1 then
+    return pandoc.Null
+  end
+end
 
 cleaninline = {
   Space = function(el)
@@ -93,12 +104,8 @@ Plain = function(el)
       return pandoc.Plain(el.content)
       end
   end
-  return pandoc.Plain(cleaninlines(el.content))
 end,
 
-Para = function(el)
-  return pandoc.Para(cleaninlines(el.content))
-end,
 
 
 CodeBlock = function(el)
