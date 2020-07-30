@@ -1,9 +1,3 @@
-local function cleaninlines(content)
-  for i,v in ipairs(content) do
-    content[i] = pandoc.walk_inline(content[i], cleaninline)
-  end
-  return content
-end
 function tablelength(T)
   local count = 0
   for _ in pairs(T) do count = count + 1 end
@@ -16,17 +10,6 @@ Span = function(el)
   end
 end
 
-cleaninline = {
-  Space = function(el)
-    return pandoc.Str(" ")
-  end,
-  LineBreak = function(el)
-    return pandoc.Str(" ")
-  end,
-  SoftBreak = function(el)
-    return pandoc.Str(" ")
-  end,
-}
 
 cleanblocks = {
   Str = function(el)
@@ -87,6 +70,8 @@ Header = function(el)
     end
     return pandoc.Header(3, methodname)
   end
+
+  return pandoc.Header(el.level - 1, el.content)
 end,
 
 Div = function(el)
