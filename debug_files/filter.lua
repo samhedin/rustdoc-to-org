@@ -35,19 +35,34 @@ Header = function(el)
   if el.classes:includes("method") then
     local code = el.content[1]
     local methodname = ""
-    local methodname_started = false
-    if not string.match(code.text, "must_use") then
-      methodname_started = true
+    local must_use_text = ""
+    local contains_must_use = false
+    local in_methodname = true
+    local in_must_use_text = false
+
+    if string.match(code.text, "must_use") then
+      in_methodname = false
+      contains_must_use = true
     end
 
     for i = 1, #code.text do
       local c = code.text:sub(i, i);
-      if methodname_started then
+
+      if in_methodname then
         methodname = methodname .. c
+      elseif in_must_use_text then
+        must_use_text = must_use_text .. c
       end
+
       if c == "]" then
-        methodname_started = true
+        in_methodname = true
+      elseif c == "\"" then
+        in_must_use_text = true
       end
+    end
+
+    if contains_must_use then
+      return pandoc.List:new({pandoc.Header(2, methodname), pandoc.Plain(must_use_text:sub(1, -3))})
     end
     return pandoc.Header(2, methodname)
   end
