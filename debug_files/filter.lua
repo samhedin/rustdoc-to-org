@@ -31,6 +31,26 @@ Header = function(el)
   if el.classes:includes("section-header") then
     return pandoc.Null
   end
+
+  if el.classes:includes("method") then
+    local code = el.content[1]
+    local methodname = ""
+    local methodname_started = false
+    if not string.match(code.text, "must_use") then
+      methodname_started = true
+    end
+
+    for i = 1, #code.text do
+      local c = code.text:sub(i, i);
+      if methodname_started then
+        methodname = methodname .. c
+      end
+      if c == "]" then
+        methodname_started = true
+      end
+    end
+    return pandoc.Header(2, methodname)
+  end
 end,
 
 Div = function(el)
