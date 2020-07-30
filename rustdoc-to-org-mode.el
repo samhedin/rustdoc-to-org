@@ -7,7 +7,6 @@
 ;;;###autoload
 (defun rustdoc-to-org--get-filter ()
   "Install or update the rustdoc-to-org filter"
-  (interactive)
   (let ((default-directory "~/.local/bin"))
     (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/master/filter.lua"
                    "filter.lua" t)))
@@ -52,30 +51,40 @@ If DIRECTORY is not given, prompts user to select directory."
               (insert-file-contents file)
               (< 10 (count-lines (point-min)
                                  (point-max))))
-        (progn
-          (convert-file dir file))))
-    (message "Done!")))
+          (convert-file dir file)))))
 
 (defun convert-file (dir file)
   (let* ((outputfile  (concat rustdoc-to-org-search-directory
                               "/"
                               (file-name-sans-extension (file-relative-name file dir))
                               ".org"))
+
          ;; Save the outputfilename in a closure that will be called when the conversion is finished
          (callback (lambda (p e)
                      (remove-whitespace outputfile)))
          (process (progn
                     (make-directory (file-name-directory outputfile)
                                     t)
-                    (start-process "convert"
+                    (call-process "pandoc" nil
                                    "*pandoc-log*"
-                                   "pandoc"
+                                   nil
                                    (shell-quote-argument file)
                                    "--lua-filter"
                                    (file-truename (concat default-directory "filter.lua"))
                                    "-o"
                                    (shell-quote-argument outputfile)))))
-    (set-process-sentinel process callback)))
+
+    (message "about to convert file %s" file)))
+
+(defun rustdoc-to-org--convert-current-project ()
+  "Generate the current package to rustdoc and convert it to org. The result is placed in `rustdoc-to-org-search-directory'"
+  (interactive)
+  (let ((outputdir (file-truename (concat default-directory "cargo-doc" "/" "doc"))))
+  (call-process "cargo" nil "*cargo-doc-log*" nil
+                "doc"
+                "--target-dir"
+                "cargo-doc")
+  (rustdoc-to-org--convert-directory outputdir)))
 
 ;;;###autoload
 (defun remove-whitespace (outputfile)
