@@ -94,7 +94,7 @@ Div = function(el)
     return pandoc.Null
   elseif el.classes:includes("variant") and el.classes:includes("small-section-header") then
     return pandoc.List:new({pandoc.Header(2, el.content[1].content[2])})
-  elseif el.classes:includes("section") and el.classes:includes("content") then
+  elseif (el.classes:includes("section") and el.classes:includes("content") or el.attr.identifier == "implementors-list") then
     return pandoc.Div(el.content)
   end
 end,
