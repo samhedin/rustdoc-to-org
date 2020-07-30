@@ -87,6 +87,11 @@ Plain = function(el)
     if v.t == "Span" and v.content[1] and v.content[1].t == "Str" and v.content[1].text == "Run" then
       return pandoc.Null
     end
+
+    if v.t == "Span" and v.classes:includes("emoji") then
+      table.remove(el.content, 1)
+      return pandoc.Plain(el.content)
+      end
   end
   return pandoc.Plain(cleaninlines(el.content))
 end,
