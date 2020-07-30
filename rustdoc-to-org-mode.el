@@ -9,7 +9,7 @@
   "Install or update the rustdoc-to-org filter"
   (interactive)
   (let ((default-directory "~/.local/bin"))
-    (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/lua/filter.lua"
+    (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/master/filter.lua"
                    "filter.lua" t)))
 
 ;;;###autoload
