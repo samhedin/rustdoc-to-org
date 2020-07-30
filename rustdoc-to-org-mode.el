@@ -23,15 +23,6 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
     (helm-ag rustdoc-to-org-search-directory
              (concat regex search-term))))
 
-;;;###autoload
-(defun rustdoc-to-org--install-binary ()
-  "Install or update the rustdoc-to-org filter"
-  (interactive)
-  (let ((default-directory "~/.local/bin"))
-    (url-copy-file "https://github.com/samhedin/rustdoc-to-org/releases/download/v0.3/rustdoc-to-org-exe"
-                   "rustdoc-to-org-exe")
-    (start-process "make_executable" nil "chmod"
-                   "+x" "rustdoc-to-org-exe")))
 
 ;;;###autoload
 (defun rustdoc-to-org--convert-directory (&optional directory)
@@ -44,12 +35,7 @@ If `DIRECTORY` is not given, prompts user to select directory."
         (dir (if directory
                  directory
                (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<dir>/share/doc/rust/html/std): "))))
-    (when (not (file-exists-p "rustdoc-to-org-exe"))
-      (if (string= "yes"
-                   (read-string "Could not find rustdoc-to-org pandoc filter in your path, would you like to install it? "
-                                "yes"))
-          (rustdoc-to-org--install-binary)
-        (message "could not find pandoc filter, this will not work!")))
+
     (message "Batch converting files, this might take a while!")
 
     (dolist (file (directory-files-recursively dir ".html"))
@@ -76,8 +62,8 @@ If `DIRECTORY` is not given, prompts user to select directory."
                                    "*pandoc-log*"
                                    "pandoc"
                                    (shell-quote-argument file)
-                                   "--filter"
-                                   "rustdoc-to-org-exe"
+                                   "--lua-filter"
+                                   "/home/sam/github/rustdoc-to-org/debug_files/filter.lua"
                                    "-o"
                                    (shell-quote-argument outputfile)))))
     (set-process-sentinel process callback)))
@@ -117,7 +103,7 @@ If `DIRECTORY` is not given, prompts user to select directory."
   "Translate rust documentation to org mode, and browse it."
   :lighter " rustdoc in org"
   :keymap (let ((map (make-sparse-keymap)))
-            (define-key map (kbd "C-c C-d") 'search-rustdoc)
+            (define-key map (kbd "C-#") 'search-rustdoc)
             map))
 
 ;;;###autoload
