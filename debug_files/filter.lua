@@ -105,7 +105,7 @@ Plain = function(el)
       return pandoc.Null
     end
 
-    if v.t == "Span" and v.classes:includes("loading-content") then
+    if v.t == "Span" and (v.classes:includes("loading-content") or tablelength(v.content) == 0) then
       return pandoc.Null
     end
 
