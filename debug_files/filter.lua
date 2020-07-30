@@ -43,11 +43,15 @@ Header = function(el)
     return pandoc.Null
   end
   if el.classes:includes("small-section-header") then
-    return pandoc.Header(1, pandoc.List:new{el.content[1]})
+    return pandoc.Header(1, pandoc.List:new({el.content[1]}))
   end
   if el.classes:includes("impl") then
     return pandoc.Header(2, pandoc.List:new{el.content[1]})
   end
+  if el.classes:includes("fqn") and el.level == 1 then
+    return pandoc.Header(1, el.content)
+  end
+
 
   if el.classes:includes("method") then
     local code = el.content[1]
