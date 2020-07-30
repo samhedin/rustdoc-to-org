@@ -31,6 +31,12 @@ Header = function(el)
   if el.classes:includes("section-header") then
     return pandoc.Null
   end
+  if el.classes:includes("small-section-header") then
+    return pandoc.Header(1, el.content)
+  end
+  if el.classes:includes("impl") then
+    return pandoc.Header(2, el.content)
+  end
 
   if el.classes:includes("method") then
     local code = el.content[1]
@@ -62,15 +68,17 @@ Header = function(el)
     end
 
     if contains_must_use then
-      return pandoc.List:new({pandoc.Header(2, methodname), pandoc.Plain(must_use_text:sub(1, -3))})
+      return pandoc.List:new({pandoc.Header(3, methodname), pandoc.Plain(must_use_text:sub(1, -3))})
     end
-    return pandoc.Header(2, methodname)
+    return pandoc.Header(3, methodname)
   end
 end,
 
 Div = function(el)
   if el.classes:includes("shortcuts") or el.classes:includes("sidebar-elems") or el.classes:includes("theme-picker") or el.classes:includes("infos") or el.classes:includes("search-container")  or el.classes:includes("sidebar-menu") or el.classes:includes("logo-container") or el.classes:includes("toggle-wrapper") then
     return pandoc.Null
+  elseif el.classes:includes("variant") and el.classes:includes("small-section-header") then
+    return pandoc.List:new({pandoc.Header(2, el.content[1].content[2])})
   end
 end,
 
