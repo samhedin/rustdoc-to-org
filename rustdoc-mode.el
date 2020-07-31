@@ -3,7 +3,7 @@
 ;; Author: Sam Hedin <sam.hedin@gmail.com>
 ;; URL: https://github.com/samhedin/rustdoc
 ;; Version: 0.5
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "25.1") (helm-ag "0.62"))
 
 ;; MIT License
 
@@ -136,27 +136,9 @@ Place the output in `rustdoc-search-directory', saving its relative path thanks 
 
 
 ;;;###autoload
-(defun rustdoc-parent-directory (dir)
-  "Return parent directory to DIR."
-  (unless (equal "/" dir)
-    (file-name-directory (directory-file-name dir))))
-
-;;;###autoload
-(defun rustdoc-find-doc-dir-helper (current-dir)
-  "Find the doc directory in a rust package.
-Start at CURRENT-DIR and go up the hierarchy until the doc folder is found."
-  (let* ((fname "target")
-         (file (concat current-dir fname))
-         (parent (rustdoc-parent-directory (expand-file-name current-dir))))
-    (if (file-exists-p file)
-        (concat file "/" "doc")
-      (when parent
-        (rustdoc-find-doc-dir-helper parent)))))
-
-;;;###autoload
 (defun rustdoc-find-doc-dir ()
   "Find the doc directory in a rust package."
-  (rustdoc-find-doc-dir-helper (file-name-directory (buffer-file-name))))
+  (concat (locate-dominating-file (buffer-file-name) "target") "target/doc"))
 
 ;;;###autoload
 (defun rustdoc-convert-current-package ()
@@ -180,9 +162,11 @@ Start at CURRENT-DIR and go up the hierarchy until the doc folder is found."
   "Return whether the next line is an org mode header or not."
   (save-excursion
     (forward-line)
-    (string-prefix-p "*"
-                     (buffer-substring-no-properties (line-beginning-position)
-                                                     (line-end-position)))))
+    (string-prefix-p
+     "*"
+     (buffer-substring-no-properties
+      (line-beginning-position)
+      (line-end-position)))))
 
 
 ;;;###autoload
