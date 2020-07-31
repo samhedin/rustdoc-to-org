@@ -1,4 +1,4 @@
-;;; rustdoc-mode.el --- Browse rust documentation as .org files -*- lexical-binding: t -*-
+;; rustdoc-mode.el --- Browse rust documentation as .org files -*- lexical-binding: t -*-
 
 ;; Author: Sam Hedin <sam.hedin@gmail.com>
 ;; URL: https://github.com/samhedin/rustdoc
@@ -43,7 +43,7 @@
 
 (require 'url)
 
-(defvar rustdoc-search-directory (concat user-emacs-directory "/private/rustdoc")
+(defvar rustdoc-search-directory (concat user-emacs-directory "private/rustdoc")
   "Directory to search for converted org files.")
 
 (defvar rustdoc-lua-filter-location "~/.local/bin/filter.lua"
@@ -52,10 +52,8 @@
 ;;;###autoload
 (defun rustdoc-get-filter ()
   "Install or update the rustdoc filter."
-  (url-copy-file
-   "https://raw.githubusercontent.com/samhedin/rustdoc/master/filter.lua"
-   rustdoc-lua-filter-location
-   t))
+  (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc/master/filter.lua"
+                 rustdoc-lua-filter-location t))
 
 ;;;###autoload
 (defun rustdoc-search (search-term)
@@ -65,21 +63,18 @@ to limit the number of results.
 Provide a raw prefix arg to only search for Level 1 headers
 to limit the number of search results even further.
 This is useful if you want to search for the name of a struct, enum or trait."
-  (interactive (list
-                (read-string
-                 (format "search term, default (%s): " (thing-at-point 'symbol))
-                 nil
-                 nil
-                 (thing-at-point 'symbol))))
-
+  (interactive (list (read-string
+                      (format "search term, default (%s): " (thing-at-point 'symbol))
+                      nil
+                      nil
+                      (thing-at-point 'symbol))))
   (let ((helm-ag-base-command "rg  --smart-case --no-heading --color=never --line-number")
         (regex (if current-prefix-arg
                    (progn
                      (setq current-prefix-arg nil)
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
-    (helm-ag rustdoc-search-directory
-             (concat regex search-term))))
+    (helm-ag rustdoc-search-directory (concat regex search-term))))
 
 ;;;###autoload
 (defun rustdoc-convert-directory (&optional directory)
@@ -87,8 +82,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
 Place the files in `rustdoc-search-directory`
 If DIRECTORY is not given, prompts user to select directory."
   (interactive)
-  (unless (file-directory-p rustdoc-search-directory)
-    (make-directory rustdoc-search-directory))
+  (make-directory rustdoc-search-directory t)
   (let ((default-directory "~/.local/bin/")
         (dir (if directory
                  directory
@@ -114,8 +108,9 @@ Place the output in `rustdoc-search-directory', saving its relative path thanks 
                              "/"
                              (file-name-sans-extension (file-relative-name file dir))
                              ".org")))
-    (make-directory (file-name-directory outputfile)
-                    t)
+    (make-directory
+     (file-name-directory outputfile)
+     t)
     (call-process "pandoc"
                   nil
                   "*pandoc-log*"
@@ -135,44 +130,31 @@ Place the output in `rustdoc-search-directory', saving its relative path thanks 
         (insert-file-contents outputfile)
         (goto-char (point-min))
         (while (not (eobp))
-          (when (and (rustdoc-current-line-empty-p)
-                     (not (rustdoc-next-line-is-header-p))) ;; Delete newlines unless the next line is a header.
+          (when (and (rustdoc--current-line-empty-p)
+                     (not (rustdoc--next-line-is-header-p)))
             (kill-whole-line))
           (forward-line)))
     (error (message "Missing %s " outputfile))))
 
 
 ;;;###autoload
-(defun rustdoc-find-doc-dir ()
-  "Find the doc directory in a rust package."
-  (concat
-   (locate-dominating-file
-    (buffer-file-name)
-    "target")
-   "target/doc"))
-
-;;;###autoload
 (defun rustdoc-convert-current-package ()
   "Generate and convert the documentation for the current rust package."
   (interactive)
-  (call-process
-   "cargo"
-   nil
-   "*cargo-makedoc*"
-   nil
-   "makedocs")
-  (rustdoc-convert-directory (rustdoc-find-doc-dir)))
+  (call-process "cargo" nil "*cargo-makedoc*" nil "makedocs")
+  (rustdoc-convert-directory
+   (concat
+    (locate-dominating-file (buffer-file-name) "target")
+    "target/doc")))
 
 ;; from https://emacs.stackexchange.com/questions/16792/easiest-way-to-check-if-current-line-is-empty-ignoring-whitespace/16793#16793
-;;;###autoload
-(defun rustdoc-current-line-empty-p ()
+(defun rustdoc--current-line-empty-p ()
   "Return whether the current line is empty or not."
   (save-excursion
     (beginning-of-line)
     (looking-at-p "[[:space:]]*$")))
 
-;;;###autoload
-(defun rustdoc-next-line-is-header-p ()
+(defun rustdoc--next-line-is-header-p ()
   "Return whether the next line is an org mode header or not."
   (save-excursion
     (forward-line)
@@ -185,15 +167,14 @@ Place the output in `rustdoc-search-directory', saving its relative path thanks 
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
-  "Lets you convert rust html docs to .org, and search in the org files."
+  "Lets you convert rust html docs to .org, and search the converted org files."
   :lighter " rustdoc in org"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-#") 'rustdoc-search)
             map))
 
-(add-hook 'rustic-mode-hook 'rustdoc-mode)
-(add-hook 'rust-mode-hook 'rustdoc-mode)
-(add-hook 'org-mode-hook 'rustdoc-mode)
+(dolist (mode '(rust-mode-hook rustic-mode-hook org-mode-hook))
+  (add-hook mode 'rustdoc-mode))
 
 (provide 'rustdoc-mode)
 
