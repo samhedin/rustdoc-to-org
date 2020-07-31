@@ -1,4 +1,4 @@
-;;; rustdoc-to-org-mode.el --- Browse rust documentation from Emacs
+;;; rustdoc-to-org-mode.el --- Convert rust html docs to .org and browse the converted files.
 ;; -*- lexical-binding: t -*-
 
 ;; MIT License
@@ -26,27 +26,27 @@
 ;;; Commentary:
 
 ;; This package lets you convert rustdoc html-files to org mode files, and lets you browse them with `search-rustdoc'.
-;; Run `rto-convert-directory' to convert all `.html` files in a directory. This will fetch the (very tiny) Pandoc filter from github.
+;; Run `rustdoc-to-org-convert-directory' to convert all `.html` files in a directory. This will fetch the (very tiny) Pandoc filter from github.
 ;; Batch conversion could take time and freeze Emacs for large projects, so you might want to start a new Emacs session or take a break while you're waiting.
-;; Generate all `html' files for `std' by running `rustup doc'. Now convert `~/.rustup/toolchains/<arch>/share/doc/rust/html/std/)' with `rto-convert-directory'.
-;; Run `M-x rto-convert-current-package' to generate and convert docs for the package you are currently visiting.
-;; You can customize the directory to store and search for org docs by editing `rto-search-directory'.
+;; Generate all `html' files for `std' by running `rustup doc'. Now convert `~/.rustup/toolchains/<arch>/share/doc/rust/html/std/)' with `rustdoc-to-org-convert-directory'.
+;; Run `M-x rustdoc-to-org-convert-current-package' to generate and convert docs for the package you are currently visiting.
+;; You can customize the directory to store and search for org docs by editing `rustdoc-to-org-search-directory'.
 ;; You can customize the location the lua filter is saved in by editing `lua-filter-location'
 
 ;;; Code:
 
 (require 'helm-ag)
 (require 'url)
-(defvar rto-search-directory "~/.emacs.d/private/rustdoc"
+(defvar rustdoc-to-org-search-directory "~/.emacs.d/private/rustdoc"
   "Directory to search for converted org files.")
-(defvar rto-lua-filter-location "~/.local/bin/filter.lua"
+(defvar rustdoc-to-org-lua-filter-location "~/.local/bin/filter.lua"
   "Default save location for the rustdoc-to-org lua filter.")
 
 ;;;###autoload
-(defun rto-get-filter ()
+(defun rustdoc-to-org-get-filter ()
   "Install or update the rustdoc-to-org filter."
   (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/master/filter.lua"
-                 rto-lua-filter-location t))
+                 rustdoc-to-org-lua-filter-location t))
 
 ;;;###autoload
 (defun search-rustdoc (search-term)
@@ -67,22 +67,22 @@ This is useful if you want to search for the name of a struct, enum or trait."
                      (setq current-prefix-arg nil)
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
-    (helm-ag rto-search-directory
+    (helm-ag rustdoc-to-org-search-directory
              (concat regex search-term))))
 
 ;;;###autoload
-(defun rto-convert-directory (&optional directory)
+(defun rustdoc-to-org-convert-directory (&optional directory)
   "Convert all .html files in DIRECTORY and its subdirectories to .org.
-Place the files in `rto-search-directory`
+Place the files in `rustdoc-to-org-search-directory`
 If DIRECTORY is not given, prompts user to select directory."
   (interactive)
-  (when (not (file-directory-p rto-search-directory))
-    (make-directory rto-search-directory))
+  (unless (file-directory-p rustdoc-to-org-search-directory)
+    (make-directory rustdoc-to-org-search-directory))
   (let ((default-directory "~/.local/bin/")
         (dir (if directory
                  directory
                (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<arch>/share/doc/rust/html/std): "))))
-    (rto-get-filter)
+    (rustdoc-to-org-get-filter)
     (dolist (file (directory-files-recursively dir ".html"))
       (if (with-temp-buffer
             (insert-file-contents file)
@@ -90,18 +90,16 @@ If DIRECTORY is not given, prompts user to select directory."
                                (point-max))))
           (progn
             (message "converting %s" file)
-            (rto-convert-file dir file))
-
+            (rustdoc-to-org-convert-file dir file))
         (message "Ignoring conversion of %s as it is probably a redirect"
                  file)))
-
     (message "Batch conversion done!")))
 
 ;;;###autoload
-(defun rto-convert-file (dir file)
+(defun rustdoc-to-org-convert-file (dir file)
   "Convert a html FILE to org.
-Place the output in `rto-search-directory', saving its relative path thanks to DIR."
-  (let* ((outputfile (concat rto-search-directory
+Place the output in `rustdoc-to-org-search-directory', saving its relative path thanks to DIR."
+  (let* ((outputfile (concat rustdoc-to-org-search-directory
                              "/"
                              (file-name-sans-extension (file-relative-name file dir))
                              ".org")))
@@ -113,67 +111,68 @@ Place the output in `rto-search-directory', saving its relative path thanks to D
                   nil
                   (shell-quote-argument file)
                   "--lua-filter"
-                  (file-truename rto-lua-filter-location)
+                  (file-truename rustdoc-to-org-lua-filter-location)
                   "-o"
                   (shell-quote-argument outputfile))
-    (rto-remove-whitespace outputfile)))
+    (rustdoc-to-org-remove-whitespace outputfile)))
 
 ;;;###autoload
-(defun rto-remove-whitespace (outputfile)
+(defun rustdoc-to-org-remove-whitespace (outputfile)
   "Remove blank lines from OUTPUTFILE, unless the line after is a header."
   (condition-case nil
       (with-temp-file outputfile
         (insert-file-contents outputfile)
         (goto-char (point-min))
         (while (not (eobp))
-          (when (and (rto-current-line-empty-p)
-                     (not (rto-next-line-is-header-p))) ;; Delete newlines unless the next line is a header.
+          (when (and (rustdoc-to-org-current-line-empty-p)
+                     (not (rustdoc-to-org-next-line-is-header-p))) ;; Delete newlines unless the next line is a header.
             (kill-whole-line))
           (forward-line)))
     (error (message "Missing %s " outputfile))))
 
 
 ;;;###autoload
-(defun rto-parent-directory (dir)
+(defun rustdoc-to-org-parent-directory (dir)
   "Return parent directory to DIR."
   (unless (equal "/" dir)
     (file-name-directory (directory-file-name dir))))
 
 ;;;###autoload
-(defun rto-find-doc-dir-helper (current-dir)
+(defun rustdoc-to-org-find-doc-dir-helper (current-dir)
   "Find the doc directory in a rust package.
 Start at CURRENT-DIR and go up the hierarchy until the doc folder is found."
   (let* ((fname "target")
          (file (concat current-dir fname))
-        (parent (rto-parent-directory (expand-file-name current-dir))))
+         (parent (rustdoc-to-org-parent-directory (expand-file-name current-dir))))
     (if (file-exists-p file)
         (concat file "/" "doc")
       (when parent
-        (rto-find-doc-dir-helper parent)))))
+        (rustdoc-to-org-find-doc-dir-helper parent)))))
 
 ;;;###autoload
-(defun rto-find-doc-dir ()
+(defun rustdoc-to-org-find-doc-dir ()
   "Find the doc directory in a rust package."
-  (rto-find-doc-dir-helper (file-name-directory (buffer-file-name))))
+  (rustdoc-to-org-find-doc-dir-helper (file-name-directory (buffer-file-name))))
 
 ;;;###autoload
-(defun rto-convert-current-package ()
+(defun rustdoc-to-org-convert-current-package ()
   "Generate and convert the documentation for the current rust package."
   (interactive)
-  (call-process "cargo" nil "*cargo-makedoc*" nil "makedocs")
-  (let ((dir (rto-find-doc-dir)))
-    (rto-convert-directory dir)))
+  (call-process "cargo" nil "*cargo-makedoc*"
+                nil "makedocs")
+  (let ((dir (rustdoc-to-org-find-doc-dir)))
+    (rustdoc-to-org-convert-directory dir)))
 
 ;; from https://emacs.stackexchange.com/questions/16792/easiest-way-to-check-if-current-line-is-empty-ignoring-whitespace/16793#16793
 ;;;###autoload
-(defun rto-current-line-empty-p ()
+(defun rustdoc-to-org-current-line-empty-p ()
   "Return whether the current line is empty or not."
   (save-excursion
     (beginning-of-line)
     (looking-at-p "[[:space:]]*$")))
 
 ;;;###autoload
-(defun rto-next-line-is-header-p ()
+(defun rustdoc-to-org-next-line-is-header-p ()
   "Return whether the next line is an org mode header or not."
   (save-excursion
     (forward-line)
