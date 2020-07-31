@@ -7,11 +7,11 @@ A Pandoc filter that converts rust documentation to .org-files, and a minor mode
 Installation is somewhat annoying at the moment, in the future I would like to make it easier. However, most of these should not be too painful to setup.
 
 * Install cargo https://doc.rust-lang.org/cargo/getting-started/installation.html
-* Install Pandoc https://pandoc.org/
+* Install Pandoc https://pandoc.org/installing.html
 * Install ripgrep https://github.com/BurntSushi/ripgrep#installation
-* Install helm-ag https://github.com/bridgesense/emacs-helm-ag
+* Install helm-ag https://github.com/bridgesense/emacs-helm-ag#installation
 * Install cargo-makedocs by running `cargo install cargo-makedocs` https://github.com/Bunogi/cargo-makedocs
-* Copy `rustdoc-to-org-mode.el` and load it with `(load-file rustdoc-to-org-mode.el)`
+* Copy `rustdoc-to-org-mode.el` and load it with `(require rustdoc-to-org-mode.el)`
 
 ## Usage
 
