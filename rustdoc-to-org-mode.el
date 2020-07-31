@@ -46,14 +46,20 @@ If DIRECTORY is not given, prompts user to select directory."
     (rustdoc-to-org--get-filter)
     (message "Batch converting files, this might take a while!")
     (dolist (file (directory-files-recursively dir ".html"))
-      (when (with-temp-buffer
+
+      (if (with-temp-buffer
               (insert-file-contents file)
               (< 10 (count-lines (point-min)
                                  (point-max))))
-        (convert-file dir file)))))
+
+          (progn
+            (message "converting file %s" file)
+            (convert-file dir file))
+
+        (message "Ignoring conversion of %s as it is probably a redirect" file)))
+    (message "Batch conversion done!")))
 
 (defun convert-file (dir file)
-  (message "converting %s" file)
   (let* ((outputfile (concat rustdoc-to-org-search-directory
                              "/"
                              (file-name-sans-extension (file-relative-name file dir))
@@ -69,7 +75,8 @@ If DIRECTORY is not given, prompts user to select directory."
                   "--lua-filter"
                   (file-truename lua-filter-location)
                   "-o"
-                  (shell-quote-argument outputfile))))
+                  (shell-quote-argument outputfile))
+    (remove-whitespace outputfile)))
 
 ;;;###autoload
 (defun remove-whitespace (outputfile)
