@@ -1,5 +1,5 @@
 # Rustdoc to org
-A Pandoc filter that converts rust documentation to .org-files, and a minor mode to go with! This is still in a very early state, but hopefully this can help someone.
+A Pandoc filter that converts rust documentation to .org-files, and a minor mode to go with! This is still in a very early state, but maybe it can help someone.
 ![Demo with helm ag](demo.gif)
 
 ## Installation
