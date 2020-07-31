@@ -1,22 +1,61 @@
+;;; rustdoc-to-org-mode.el --- Browse rust documentation from Emacs
 ;; -*- lexical-binding: t -*-
+
+;; MIT License
+
+;; Copyright (c) 2020 Sam Hedin
+
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to deal
+;; in the Software without restriction, including without limitation the rights
+;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;; copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+
+;; The above copyright notice and this permission notice shall be included in all
+;; copies or substantial portions of the Software.
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;; SOFTWARE.
+
+;;; Commentary:
+
+;; This package lets you convert rustdoc html-files to org mode files, and lets you browse them with `search-rustdoc'.
+;; Run `rto-convert-directory' to convert all `.html` files in a directory. This will fetch the (very tiny) Pandoc filter from github.
+;; Batch conversion could take time and freeze Emacs for large projects, so you might want to start a new Emacs session or take a break while you're waiting.
+;; Generate all `html' files for `std' by running `rustup doc'. Now convert `~/.rustup/toolchains/<arch>/share/doc/rust/html/std/)' with `rto-convert-directory'.
+;; Run `M-x rto-convert-current-package' to generate and convert docs for the package you are currently visiting.
+;; You can customize the directory to store and search for org docs by editing `rto-search-directory'.
+;; You can customize the location the lua filter is saved in by editing `lua-filter-location'
+
+;;; Code:
+
 (require 'helm-ag)
 (require 'url)
 (defvar rto-search-directory "~/.emacs.d/private/rustdoc"
-  "Directory to search for converted org files")
+  "Directory to search for converted org files.")
 (defvar rto-lua-filter-location "~/.local/bin/filter.lua"
-  "Default save location for the rustdoc-to-org lua filter")
+  "Default save location for the rustdoc-to-org lua filter.")
 
 ;;;###autoload
 (defun rto-get-filter ()
-  "Install or update the rustdoc-to-org filter"
+  "Install or update the rustdoc-to-org filter."
   (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/master/filter.lua"
                  rto-lua-filter-location t))
 
 ;;;###autoload
 (defun search-rustdoc (search-term)
   "Search the rust documentation for SEARCH-TERM.
-Only searches in headers (structs, functions, traits, enums, etc) to limit the number of results.
-Provide `prefix-arg` to only search for Level 1 headers to limit the number of search results even further. This is useful if you want to search for the name of a struct, enum or trait."
+Only searches in headers (structs, functions, traits, enums, etc)
+to limit the number of results.
+Provide a raw prefix arg to only search for Level 1 headers
+to limit the number of search results even further.
+This is useful if you want to search for the name of a struct, enum or trait."
   (interactive (list (read-string (format "search term, default (%s): "
                                           (thing-at-point 'symbol))
                                   nil
@@ -33,7 +72,8 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
 
 ;;;###autoload
 (defun rto-convert-directory (&optional directory)
-  "Convert all .html files in DIRECTORY and its subdirectories to org and place the files in `rto-search-directory`
+  "Convert all .html files in DIRECTORY and its subdirectories to .org.
+Place the files in `rto-search-directory`
 If DIRECTORY is not given, prompts user to select directory."
   (interactive)
   (when (not (file-directory-p rto-search-directory))
@@ -59,6 +99,8 @@ If DIRECTORY is not given, prompts user to select directory."
 
 ;;;###autoload
 (defun rto-convert-file (dir file)
+  "Convert a html FILE to org.
+Place the output in `rto-search-directory', saving its relative path thanks to DIR."
   (let* ((outputfile (concat rto-search-directory
                              "/"
                              (file-name-sans-extension (file-relative-name file dir))
@@ -78,6 +120,7 @@ If DIRECTORY is not given, prompts user to select directory."
 
 ;;;###autoload
 (defun rto-remove-whitespace (outputfile)
+  "Remove blank lines from OUTPUTFILE, unless the line after is a header."
   (condition-case nil
       (with-temp-file outputfile
         (insert-file-contents outputfile)
@@ -92,12 +135,14 @@ If DIRECTORY is not given, prompts user to select directory."
 
 ;;;###autoload
 (defun rto-parent-directory (dir)
+  "Return parent directory to DIR."
   (unless (equal "/" dir)
     (file-name-directory (directory-file-name dir))))
 
 ;;;###autoload
 (defun rto-find-doc-dir-helper (current-dir)
-  "Search for a file named FNAME upwards through the directory hierarchy, starting from CURRENT-DIR"
+  "Find the doc directory in a rust package.
+Start at CURRENT-DIR and go up the hierarchy until the doc folder is found."
   (let* ((fname "target")
          (file (concat current-dir fname))
         (parent (rto-parent-directory (expand-file-name current-dir))))
@@ -108,23 +153,28 @@ If DIRECTORY is not given, prompts user to select directory."
 
 ;;;###autoload
 (defun rto-find-doc-dir ()
+  "Find the doc directory in a rust package."
   (rto-find-doc-dir-helper (file-name-directory (buffer-file-name))))
 
 ;;;###autoload
 (defun rto-convert-current-package ()
+  "Generate and convert the documentation for the current rust package."
   (interactive)
   (call-process "cargo" nil "*cargo-makedoc*" nil "makedocs")
   (let ((dir (rto-find-doc-dir)))
     (rto-convert-directory dir)))
 
+;; from https://emacs.stackexchange.com/questions/16792/easiest-way-to-check-if-current-line-is-empty-ignoring-whitespace/16793#16793
 ;;;###autoload
 (defun rto-current-line-empty-p ()
+  "Return whether the current line is empty or not."
   (save-excursion
     (beginning-of-line)
     (looking-at-p "[[:space:]]*$")))
 
 ;;;###autoload
 (defun rto-next-line-is-header-p ()
+  "Return whether the next line is an org mode header or not."
   (save-excursion
     (forward-line)
     (string-prefix-p "*"
@@ -145,3 +195,5 @@ If DIRECTORY is not given, prompts user to select directory."
 (add-hook 'org-mode-hook 'rustdoc-to-org-mode)
 
 (provide 'rustdoc-to-org-mode)
+
+;;; rustdoc-to-org-mode.el ends here

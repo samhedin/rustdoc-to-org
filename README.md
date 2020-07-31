@@ -9,9 +9,9 @@ Installation is somewhat annoying at the moment, in the future I would like to m
 * Install cargo https://doc.rust-lang.org/cargo/getting-started/installation.html
 * Install Pandoc https://pandoc.org/installing.html
 * Install ripgrep https://github.com/BurntSushi/ripgrep#installation
-* Install helm-ag https://github.com/bridgesense/emacs-helm-ag#installation
+* Install helm-ag from MELPA with <kbd>M-x package-install [RET] helm-ag [RET]</kbd> https://github.com/bridgesense/emacs-helm-ag#installation
 * Install cargo-makedocs by running `cargo install cargo-makedocs` https://github.com/Bunogi/cargo-makedocs
-* Copy `rustdoc-to-org-mode.el` and load it with `(require rustdoc-to-org-mode.el)`
+* Install rustdoc-to-org-mode from MELPA with <kbd>M-x package-install [RET] rustdoc-to-org-mode [RET]</kbd>
 
 ## Usage
 
