@@ -31,7 +31,6 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
     (helm-ag rustdoc-to-org-search-directory
              (concat regex search-term))))
 
-
 ;;;###autoload
 (defun rustdoc-to-org--convert-directory (&optional directory)
   "Convert all .html files in DIRECTORY and its subdirectories to org and place the files in `rustdoc-to-org-search-directory`
@@ -58,6 +57,7 @@ If DIRECTORY is not given, prompts user to select directory."
 
     (message "Batch conversion done!")))
 
+;;;###autoload
 (defun convert-file (dir file)
   (let* ((outputfile (concat rustdoc-to-org-search-directory
                              "/"
@@ -88,6 +88,28 @@ If DIRECTORY is not given, prompts user to select directory."
             (kill-whole-line))
           (forward-line)))
     (error (message "Missing %s " outputfile))))
+
+
+;;;###autoload
+(defun parent-directory (dir)
+  (unless (equal "/" dir)
+    (file-name-directory (directory-file-name dir))))
+
+;;;###autoload
+(defun find-doc-dir-helper (current-dir)
+  "Search for a file named FNAME upwards through the directory hierarchy, starting from CURRENT-DIR"
+  (let* ((fname "target")
+         (file (concat current-dir fname))
+        (parent (parent-directory (expand-file-name current-dir))))
+    (if (file-exists-p file)
+        (concat file "/" "doc")
+      (when parent
+        (find-doc-dir-helper parent)))))
+
+;;;###autoload
+(defun find-doc-dir ()
+  (find-doc-dir-helper (file-name-directory (buffer-file-name))))
+
 
 ;;;###autoload
 (defun current-line-empty-p ()
