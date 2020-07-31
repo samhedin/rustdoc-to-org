@@ -44,7 +44,7 @@ If DIRECTORY is not given, prompts user to select directory."
                  directory
                (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<dir>/share/doc/rust/html/std): "))))
     (rustdoc-to-org--get-filter)
-    (message "Batch converting files, this might take a while!")
+
     (dolist (file (directory-files-recursively dir ".html"))
 
       (if (with-temp-buffer
@@ -53,7 +53,7 @@ If DIRECTORY is not given, prompts user to select directory."
                                  (point-max))))
 
           (progn
-            (message "converting file %s" file)
+            (message "converting %s" file)
             (convert-file dir file))
 
         (message "Ignoring conversion of %s as it is probably a redirect" file)))
@@ -64,7 +64,7 @@ If DIRECTORY is not given, prompts user to select directory."
                              "/"
                              (file-name-sans-extension (file-relative-name file dir))
                              ".org")))
-    ;; Save the outputfilename in a closure that will be called when the conversion is finished
+
     (make-directory (file-name-directory outputfile)
                     t)
     (call-process "pandoc"
@@ -86,7 +86,7 @@ If DIRECTORY is not given, prompts user to select directory."
         (goto-char (point-min))
         (while (not (eobp))
           (when (and (current-line-empty-p)
-                     (not (next-line-is-header-p))) ;;Delete all whitespace, unless the next line is a header.
+                     (not (next-line-is-header-p))) ;; Delete newlines unless the next line is a header.
             (kill-whole-line))
           (forward-line)))
     (error (message "Missing file %s " outputfile))))
@@ -108,7 +108,7 @@ If DIRECTORY is not given, prompts user to select directory."
 
 ;;;###autoload
 (define-minor-mode rustdoc-to-org-mode
-  "Translate rust documentation to org mode, and browse it."
+  "Lets you convert rust html docs to .org, and search in the org files."
   :lighter " rustdoc in org"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-#") 'search-rustdoc)
