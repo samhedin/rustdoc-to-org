@@ -41,7 +41,7 @@ If DIRECTORY is not given, prompts user to select directory."
   (let ((default-directory "~/.local/bin/")
         (dir (if directory
                  directory
-               (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<dir>/share/doc/rust/html/std): "))))
+               (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<arch>/share/doc/rust/html/std): "))))
     (rto-get-filter)
     (dolist (file (directory-files-recursively dir ".html"))
       (if (with-temp-buffer

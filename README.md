@@ -4,20 +4,22 @@ A Pandoc filter that converts rust documentation to .org-files, and a minor mode
 
 ## Installation
 
+Installation is somewhat annoying at the moment, in the future I would like to make it easier. However, most of these should not be too painful to setup.
+
+* Install cargo https://doc.rust-lang.org/cargo/getting-started/installation.html
 * Install Pandoc https://pandoc.org/
 * Install ripgrep https://github.com/BurntSushi/ripgrep#installation
 * Install helm-ag https://github.com/bridgesense/emacs-helm-ag
+* Install cargo-makedocs by running `cargo install cargo-makedocs` https://github.com/Bunogi/cargo-makedocs
 * Copy `rustdoc-to-org-mode.el` and load it with `(load-file rustdoc-to-org-mode.el)`
 
 ## Usage
 
-1. Convert files and directories
-    * Run `M-x rto-convert-directory` to convert all `.html` files in a directory. The command will fetch the (very tiny) Pandoc filter from github. Batch conversion can take some time and will freeze emacs while running, so you might want to start a new emacs session or take a break while you're waiting.
-        * Generate all `.html` files for std by running `rustup doc`. In my case this puts the files in `~/.rustup/toolchains/<architecture>/share/doc/rust/html/std/)`.
-        * Generate all `.html` files for a project by running `cargo doc`. This puts the files in `projectdir/target/doc`. `cargo doc` tends to generate a ridiculous amount of files if you have a large project with many dependencies, many of them duplicates. You can use https://github.com/Bunogi/cargo-makedocs to limit the number of generated docs.
-    * If you have cargo-makedocs installed you can run `M-x rto-convert-current-package` to generate docs for the package you are currently visiting.
+* Run `M-x rto-convert-directory` to convert all `.html` files in a directory. This will fetch the (very tiny) Pandoc filter from github. Batch conversion could take time and freeze emacs for large projects, so you might want to start a new emacs session or take a break while you're waiting.
+    * Generate all `.html` files for `std` by running `rustup doc`. Now convert `~/.rustup/toolchains/<arch>/share/doc/rust/html/std/)` with `rto-convert-directory`.
+    * Run `M-x rto-convert-current-package` to generate and convert docs for the package you are currently visiting.
 
-2. Search converted org files with `C-#` to run `search-rustdoc` if you are in `Rust mode`, `Rustic mode` or `Org mode`.
+* Search the converted org files with `search-rustdoc` (bound to `C-#`) if you are in `Rust mode`, `Rustic mode` or `Org mode`.
 
 ## TODO
 
