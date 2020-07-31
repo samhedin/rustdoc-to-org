@@ -3,13 +3,14 @@
 (require 'url)
 (defvar rustdoc-to-org-search-directory "~/.emacs.d/private/rustdoc"
   "Directory to search for converted org files")
+(defvar lua-filter-location "~/.local/bin/filter.lua"
+  "Default save location for the rustdoc-to-org lua filter")
 
 ;;;###autoload
 (defun rustdoc-to-org--get-filter ()
   "Install or update the rustdoc-to-org filter"
-  (let ((default-directory "~/.local/bin"))
     (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/master/filter.lua"
-                   "filter.lua" t)))
+                  lua-filter-location t))
 
 ;;;###autoload
 (defun search-rustdoc (search-term)
@@ -58,33 +59,29 @@ If DIRECTORY is not given, prompts user to select directory."
                               "/"
                               (file-name-sans-extension (file-relative-name file dir))
                               ".org"))
-
          ;; Save the outputfilename in a closure that will be called when the conversion is finished
          (callback (lambda (p e)
                      (remove-whitespace outputfile)))
          (process (progn
                     (make-directory (file-name-directory outputfile)
                                     t)
-                    (call-process "pandoc" nil
-                                   "*pandoc-log*"
-                                   nil
-                                   (shell-quote-argument file)
-                                   "--lua-filter"
-                                   (file-truename (concat default-directory "filter.lua"))
-                                   "-o"
-                                   (shell-quote-argument outputfile)))))
+                    (start-process-pause-on-filedescriptor-error file outputfile))))
+    (set-process-sentinel process callback)))
 
-    (message "about to convert file %s" file)))
 
-(defun rustdoc-to-org--convert-current-project ()
-  "Generate the current package to rustdoc and convert it to org. The result is placed in `rustdoc-to-org-search-directory'"
-  (interactive)
-  (let ((outputdir (file-truename (concat default-directory "cargo-doc" "/" "doc"))))
-  (call-process "cargo" nil "*cargo-doc-log*" nil
-                "doc"
-                "--target-dir"
-                "cargo-doc")
-  (rustdoc-to-org--convert-directory outputdir)))
+(defun start-process-pause-on-filedescriptor-error (inputfile outputfile)
+  (condition-case nil (start-process "convert"
+                                     "*pandoc-log*"
+                                     "pandoc"
+                                     (shell-quote-argument inputfile)
+                                     "--lua-filter"
+                                     (file-truename lua-filter-location)
+                                     "-o"
+                                     (shell-quote-argument outputfile))
+    (error (progn
+             (sleep-for 5)
+             (start-process-pause-on-filedescriptor-error inputfile outputfile)))))
+
 
 ;;;###autoload
 (defun remove-whitespace (outputfile)
@@ -97,7 +94,7 @@ If DIRECTORY is not given, prompts user to select directory."
                      (not (next-line-is-header-p))) ;;Delete all whitespace, unless the next line is a header.
             (kill-whole-line))
           (forward-line)))
-    (error (message "Could not remove whitespace from %s "
+    (error (message "Missing file %s "
                     outputfile))))
 
 ;;;###autoload
