@@ -19,7 +19,7 @@ Installation is somewhat annoying at the moment, in the future I would like to m
     * Generate all `.html` files for `std` by running `rustup doc`. Now convert `~/.rustup/toolchains/<arch>/share/doc/rust/html/std/)` with `rustdoc-convert-directory`.
     * Run `M-x rustdoc-convert-current-package` to generate and convert docs for the package you are currently visiting.
 
-* Search the org files with `search-rustdoc` (bound to `C-#` by default) if you are in `Rust mode`, `Rustic mode` or `Org mode`.
+* Search the org files with `rustdoc-search` (bound to `C-#` by default) if you are in `Rust mode`, `Rustic mode` or `Org mode`.
 
 ## TODO
 

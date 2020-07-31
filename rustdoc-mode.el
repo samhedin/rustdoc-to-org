@@ -3,6 +3,7 @@
 ;; Author: Sam Hedin <sam.hedin@gmail.com>
 ;; URL: https://github.com/samhedin/rustdoc
 ;; Version: 0.5
+;; Keywords: docs languages
 ;; Package-Requires: ((emacs "25.1") (helm-ag "0.62"))
 
 ;; MIT License
@@ -49,8 +50,7 @@
 (defvar rustdoc-lua-filter-location "~/.local/bin/filter.lua"
   "Default save location for the rustdoc lua filter.")
 
-;;;###autoload
-(defun rustdoc-get-filter ()
+(defun rustdoc--get-filter ()
   "Install or update the rustdoc filter."
   (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc/master/filter.lua"
                  rustdoc-lua-filter-location t))
@@ -60,8 +60,8 @@
   "Search the rust documentation for SEARCH-TERM.
 Only searches in headers (structs, functions, traits, enums, etc)
 to limit the number of results.
-Provide a raw prefix arg to only search for Level 1 headers
-to limit the number of search results even further.
+Provide a raw prefix arg to only search for Level 1 headers,
+this limits the number of search results even further.
 This is useful if you want to search for the name of a struct, enum or trait."
   (interactive (list (read-string
                       (format "search term, default (%s): " (thing-at-point 'symbol))
@@ -87,7 +87,7 @@ If DIRECTORY is not given, prompts user to select directory."
         (dir (if directory
                  directory
                (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<arch>/share/doc/rust/html/std): "))))
-    (rustdoc-get-filter)
+    (rustdoc--get-filter)
     (dolist (file (directory-files-recursively dir ".html"))
       (if (with-temp-buffer
             (insert-file-contents file)
