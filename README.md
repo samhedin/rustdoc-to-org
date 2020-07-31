@@ -15,9 +15,9 @@ Installation is somewhat annoying at the moment, in the future I would like to m
 
 ## Usage
 
-* Run `M-x rto-convert-directory` to convert all `.html` files in a directory. This will fetch the (very tiny) Pandoc filter from github. Batch conversion could take time and freeze emacs for large projects, so you might want to start a new emacs session or take a break while you're waiting.
-    * Generate all `.html` files for `std` by running `rustup doc`. Now convert `~/.rustup/toolchains/<arch>/share/doc/rust/html/std/)` with `rto-convert-directory`.
-    * Run `M-x rto-convert-current-package` to generate and convert docs for the package you are currently visiting.
+* Run `M-x rustdoc-convert-directory` to convert all `.html` files in a directory. This will fetch the (very tiny) Pandoc filter from github. Batch conversion could take time and freeze emacs for large projects, so you might want to start a new emacs session or take a break while you're waiting.
+    * Generate all `.html` files for `std` by running `rustup doc`. Now convert `~/.rustup/toolchains/<arch>/share/doc/rust/html/std/)` with `rustdoc-convert-directory`.
+    * Run `M-x rustdoc-convert-current-package` to generate and convert docs for the package you are currently visiting.
 
 * Search the org files with `search-rustdoc` (bound to `C-#` by default) if you are in `Rust mode`, `Rustic mode` or `Org mode`.
 
