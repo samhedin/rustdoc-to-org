@@ -1,16 +1,16 @@
 ;; -*- lexical-binding: t -*-
 (require 'helm-ag)
 (require 'url)
-(defvar rustdoc-to-org-search-directory "~/.emacs.d/private/rustdoc"
+(defvar rto-search-directory "~/.emacs.d/private/rustdoc"
   "Directory to search for converted org files")
-(defvar lua-filter-location "~/.local/bin/filter.lua"
+(defvar rto-lua-filter-location "~/.local/bin/filter.lua"
   "Default save location for the rustdoc-to-org lua filter")
 
 ;;;###autoload
-(defun rustdoc-to-org--get-filter ()
+(defun rto-get-filter ()
   "Install or update the rustdoc-to-org filter"
   (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/master/filter.lua"
-                 lua-filter-location t))
+                 rto-lua-filter-location t))
 
 ;;;###autoload
 (defun search-rustdoc (search-term)
@@ -28,21 +28,21 @@ Provide `prefix-arg` to only search for Level 1 headers to limit the number of s
                      (setq current-prefix-arg nil)
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
-    (helm-ag rustdoc-to-org-search-directory
+    (helm-ag rto-search-directory
              (concat regex search-term))))
 
 ;;;###autoload
-(defun rustdoc-to-org--convert-directory (&optional directory)
-  "Convert all .html files in DIRECTORY and its subdirectories to org and place the files in `rustdoc-to-org-search-directory`
+(defun rto-convert-directory (&optional directory)
+  "Convert all .html files in DIRECTORY and its subdirectories to org and place the files in `rto-search-directory`
 If DIRECTORY is not given, prompts user to select directory."
   (interactive)
-  (when (not (file-directory-p rustdoc-to-org-search-directory))
-    (make-directory rustdoc-to-org-search-directory))
+  (when (not (file-directory-p rto-search-directory))
+    (make-directory rto-search-directory))
   (let ((default-directory "~/.local/bin/")
         (dir (if directory
                  directory
                (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<dir>/share/doc/rust/html/std): "))))
-    (rustdoc-to-org--get-filter)
+    (rto-get-filter)
     (dolist (file (directory-files-recursively dir ".html"))
       (if (with-temp-buffer
             (insert-file-contents file)
@@ -50,7 +50,7 @@ If DIRECTORY is not given, prompts user to select directory."
                                (point-max))))
           (progn
             (message "converting %s" file)
-            (convert-file dir file))
+            (rto-convert-file dir file))
 
         (message "Ignoring conversion of %s as it is probably a redirect"
                  file)))
@@ -58,8 +58,8 @@ If DIRECTORY is not given, prompts user to select directory."
     (message "Batch conversion done!")))
 
 ;;;###autoload
-(defun convert-file (dir file)
-  (let* ((outputfile (concat rustdoc-to-org-search-directory
+(defun rto-convert-file (dir file)
+  (let* ((outputfile (concat rto-search-directory
                              "/"
                              (file-name-sans-extension (file-relative-name file dir))
                              ".org")))
@@ -71,54 +71,60 @@ If DIRECTORY is not given, prompts user to select directory."
                   nil
                   (shell-quote-argument file)
                   "--lua-filter"
-                  (file-truename lua-filter-location)
+                  (file-truename rto-lua-filter-location)
                   "-o"
                   (shell-quote-argument outputfile))
-    (remove-whitespace outputfile)))
+    (rto-remove-whitespace outputfile)))
 
 ;;;###autoload
-(defun remove-whitespace (outputfile)
+(defun rto-remove-whitespace (outputfile)
   (condition-case nil
       (with-temp-file outputfile
         (insert-file-contents outputfile)
         (goto-char (point-min))
         (while (not (eobp))
-          (when (and (current-line-empty-p)
-                     (not (next-line-is-header-p))) ;; Delete newlines unless the next line is a header.
+          (when (and (rto-current-line-empty-p)
+                     (not (rto-next-line-is-header-p))) ;; Delete newlines unless the next line is a header.
             (kill-whole-line))
           (forward-line)))
     (error (message "Missing %s " outputfile))))
 
 
 ;;;###autoload
-(defun parent-directory (dir)
+(defun rto-parent-directory (dir)
   (unless (equal "/" dir)
     (file-name-directory (directory-file-name dir))))
 
 ;;;###autoload
-(defun find-doc-dir-helper (current-dir)
+(defun rto-find-doc-dir-helper (current-dir)
   "Search for a file named FNAME upwards through the directory hierarchy, starting from CURRENT-DIR"
   (let* ((fname "target")
          (file (concat current-dir fname))
-        (parent (parent-directory (expand-file-name current-dir))))
+        (parent (rto-parent-directory (expand-file-name current-dir))))
     (if (file-exists-p file)
         (concat file "/" "doc")
       (when parent
-        (find-doc-dir-helper parent)))))
+        (rto-find-doc-dir-helper parent)))))
 
 ;;;###autoload
-(defun find-doc-dir ()
-  (find-doc-dir-helper (file-name-directory (buffer-file-name))))
-
+(defun rto-find-doc-dir ()
+  (rto-find-doc-dir-helper (file-name-directory (buffer-file-name))))
 
 ;;;###autoload
-(defun current-line-empty-p ()
+(defun rto-convert-current-package ()
+  (interactive)
+  (call-process "cargo" nil "*cargo-makedoc*" nil "makedocs")
+  (let ((dir (rto-find-doc-dir)))
+    (rto-convert-directory dir)))
+
+;;;###autoload
+(defun rto-current-line-empty-p ()
   (save-excursion
     (beginning-of-line)
     (looking-at-p "[[:space:]]*$")))
 
 ;;;###autoload
-(defun next-line-is-header-p ()
+(defun rto-next-line-is-header-p ()
   (save-excursion
     (forward-line)
     (string-prefix-p "*"
