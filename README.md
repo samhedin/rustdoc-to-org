@@ -11,15 +11,13 @@ A Pandoc filter that converts rust documentation to .org-files, and a minor mode
 
 ## Usage
 
-* Run `M-x rustdoc-to-org--convert-directory` to convert all `.html` files in a directory. The command will fetch the (very tiny) Pandoc filter from github. Batch conversion can take some time and will freeze emacs while running, so you might want to start a new emacs session while you're waiting.
-* When you have converted some files, use `C-#` to run `search-rustdoc` if you are in `Rust mode`, `Rustic mode` or `Org mode`.
+1. Convert files and directories
+    * Run `M-x rto-convert-directory` to convert all `.html` files in a directory. The command will fetch the (very tiny) Pandoc filter from github. Batch conversion can take some time and will freeze emacs while running, so you might want to start a new emacs session or take a break while you're waiting.
+        * Generate all `.html` files for std by running `rustup doc`. In my case this puts the files in `~/.rustup/toolchains/<architecture>/share/doc/rust/html/std/)`.
+        * Generate all `.html` files for a project by running `cargo doc`. This puts the files in `projectdir/target/doc`. `cargo doc` tends to generate a ridiculous amount of files if you have a large project with many dependencies, many of them duplicates. You can use https://github.com/Bunogi/cargo-makedocs to limit the number of generated docs.
+    * If you have cargo-makedocs installed you can run `M-x rto-convert-current-package` to generate docs for the package you are currently visiting.
 
-### Generate documentation for the rust standard library
-* Generate all `.html` files for std by running `rustup doc`. In my case this puts the files in `~/.rustup/toolchains/<architecture>/share/doc/rust/html/std/)`.
-
-### Convert documentation for a project
-* Generate all `.html` files for a project by running `cargo doc`. This puts the files in `projectdir/target/doc`
-* `cargo doc` tends to generate a ridiculous amount of files if you have a large project with many dependencies, many of them duplicates. You can use https://github.com/Bunogi/cargo-makedocs to limit the number of generated docs.
+2. Search converted org files with `C-#` to run `search-rustdoc` if you are in `Rust mode`, `Rustic mode` or `Org mode`.
 
 ## TODO
 
