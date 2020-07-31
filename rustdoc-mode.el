@@ -6,6 +6,8 @@
 ;; Keywords: docs languages
 ;; Package-Requires: ((emacs "25.1") (helm-ag "0.62"))
 
+;; This file is NOT part of GNU Emacs.
+
 ;; MIT License
 
 ;; Copyright (c) 2020 Sam Hedin
@@ -41,7 +43,6 @@
 ;;; Code:
 
 (require 'helm-ag)
-
 (require 'url)
 
 (defvar rustdoc-search-directory (concat user-emacs-directory "private/rustdoc")
