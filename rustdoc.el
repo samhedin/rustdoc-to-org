@@ -40,7 +40,7 @@
 ;; Generate all `html' files for `std' by running `rustup doc'. Now convert `~/.rustup/toolchains/<arch>/share/doc/rust/html/std/)' with `rustdoc-convert-directory'.
 ;; Run `M-x rustdoc-convert-current-package' to generate and convert docs for the package you are currently visiting.
 ;; You can customize the directory to store and search for org docs by editing `rustdoc-search-directory'.
-;; You can customize the location the lua filter is saved in by editing `rustdoc-lua-filter-location'
+;; You can customize the location the lua filter is saved in by editing `rustdoc-lua-filter'
 
 ;;; Code:
 
@@ -50,13 +50,17 @@
 (defvar rustdoc-search-directory (concat user-emacs-directory "private/rustdoc")
   "Directory to search for converted org files.")
 
-(defvar rustdoc-lua-filter-location "~/.local/bin/filter.lua"
+(defvar rustdoc-lua-filter "~/.local/bin/filter.lua"
   "Default save location for the rustdoc lua filter.")
 
 (defun rustdoc--get-filter ()
   "Install or update the rustdoc filter."
-  (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc/master/filter.lua"
-                 rustdoc-lua-filter-location t))
+  (condition-case nil
+      (url-copy-file "thttps://raw.githubusercontent.com/samhedin/rustdoc/master/filter.lua" rustdoc-lua-filter t)
+    (error (progn
+             (if (file-exists-p rustdoc-lua-filter)
+                 (message "Couldn't update pandoc filter, using existing one.")
+               (error "Could not retrieve pandoc filter"))))))
 
 ;;;###autoload
 (defun rustdoc-search (search-term)
@@ -120,7 +124,7 @@ Place the output in `rustdoc-search-directory', saving its relative path thanks 
                   nil
                   (shell-quote-argument file)
                   "--lua-filter"
-                  (file-truename rustdoc-lua-filter-location)
+                  (file-truename rustdoc-lua-filter)
                   "-o"
                   (shell-quote-argument outputfile))
     (rustdoc-remove-whitespace outputfile)))
