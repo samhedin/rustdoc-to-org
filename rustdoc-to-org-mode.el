@@ -9,8 +9,8 @@
 ;;;###autoload
 (defun rustdoc-to-org--get-filter ()
   "Install or update the rustdoc-to-org filter"
-    (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/master/filter.lua"
-                  lua-filter-location t))
+  (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/master/filter.lua"
+                 lua-filter-location t))
 
 ;;;###autoload
 (defun search-rustdoc (search-term)
@@ -43,45 +43,33 @@ If DIRECTORY is not given, prompts user to select directory."
         (dir (if directory
                  directory
                (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<dir>/share/doc/rust/html/std): "))))
-
     (rustdoc-to-org--get-filter)
     (message "Batch converting files, this might take a while!")
-
     (dolist (file (directory-files-recursively dir ".html"))
       (when (with-temp-buffer
               (insert-file-contents file)
               (< 10 (count-lines (point-min)
                                  (point-max))))
-          (convert-file dir file)))))
+        (convert-file dir file)))))
 
 (defun convert-file (dir file)
-  (let* ((outputfile  (concat rustdoc-to-org-search-directory
-                              "/"
-                              (file-name-sans-extension (file-relative-name file dir))
-                              ".org"))
-         ;; Save the outputfilename in a closure that will be called when the conversion is finished
-         (callback (lambda (p e)
-                     (remove-whitespace outputfile)))
-         (process (progn
-                    (make-directory (file-name-directory outputfile)
-                                    t)
-                    (start-process-pause-on-filedescriptor-error file outputfile))))
-    (set-process-sentinel process callback)))
-
-
-(defun start-process-pause-on-filedescriptor-error (inputfile outputfile)
-  (condition-case nil (start-process "convert"
-                                     "*pandoc-log*"
-                                     "pandoc"
-                                     (shell-quote-argument inputfile)
-                                     "--lua-filter"
-                                     (file-truename lua-filter-location)
-                                     "-o"
-                                     (shell-quote-argument outputfile))
-    (error (progn
-             (sleep-for 5)
-             (start-process-pause-on-filedescriptor-error inputfile outputfile)))))
-
+  (message "converting %s" file)
+  (let* ((outputfile (concat rustdoc-to-org-search-directory
+                             "/"
+                             (file-name-sans-extension (file-relative-name file dir))
+                             ".org")))
+    ;; Save the outputfilename in a closure that will be called when the conversion is finished
+    (make-directory (file-name-directory outputfile)
+                    t)
+    (call-process "pandoc"
+                  nil
+                  "*pandoc-log*"
+                  nil
+                  (shell-quote-argument file)
+                  "--lua-filter"
+                  (file-truename lua-filter-location)
+                  "-o"
+                  (shell-quote-argument outputfile))))
 
 ;;;###autoload
 (defun remove-whitespace (outputfile)
@@ -94,8 +82,7 @@ If DIRECTORY is not given, prompts user to select directory."
                      (not (next-line-is-header-p))) ;;Delete all whitespace, unless the next line is a header.
             (kill-whole-line))
           (forward-line)))
-    (error (message "Missing file %s "
-                    outputfile))))
+    (error (message "Missing file %s " outputfile))))
 
 ;;;###autoload
 (defun current-line-empty-p ()
