@@ -40,17 +40,22 @@
 ;;; Code:
 
 (require 'helm-ag)
+
 (require 'url)
+
 (defvar rustdoc-search-directory (concat user-emacs-directory "/private/rustdoc")
   "Directory to search for converted org files.")
+
 (defvar rustdoc-lua-filter-location "~/.local/bin/filter.lua"
   "Default save location for the rustdoc lua filter.")
 
 ;;;###autoload
 (defun rustdoc-get-filter ()
   "Install or update the rustdoc filter."
-  (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc/master/filter.lua"
-                 rustdoc-lua-filter-location t))
+  (url-copy-file
+   "https://raw.githubusercontent.com/samhedin/rustdoc/master/filter.lua"
+   rustdoc-lua-filter-location
+   t))
 
 ;;;###autoload
 (defun rustdoc-search (search-term)
@@ -60,11 +65,13 @@ to limit the number of results.
 Provide a raw prefix arg to only search for Level 1 headers
 to limit the number of search results even further.
 This is useful if you want to search for the name of a struct, enum or trait."
-  (interactive (list (read-string (format "search term, default (%s): "
-                                          (thing-at-point 'symbol))
-                                  nil
-                                  nil
-                                  (thing-at-point 'symbol))))
+  (interactive (list
+                (read-string
+                 (format "search term, default (%s): " (thing-at-point 'symbol))
+                 nil
+                 nil
+                 (thing-at-point 'symbol))))
+
   (let ((helm-ag-base-command "rg  --smart-case --no-heading --color=never --line-number")
         (regex (if current-prefix-arg
                    (progn
@@ -138,16 +145,23 @@ Place the output in `rustdoc-search-directory', saving its relative path thanks 
 ;;;###autoload
 (defun rustdoc-find-doc-dir ()
   "Find the doc directory in a rust package."
-  (concat (locate-dominating-file (buffer-file-name) "target") "target/doc"))
+  (concat
+   (locate-dominating-file
+    (buffer-file-name)
+    "target")
+   "target/doc"))
 
 ;;;###autoload
 (defun rustdoc-convert-current-package ()
   "Generate and convert the documentation for the current rust package."
   (interactive)
-  (call-process "cargo" nil "*cargo-makedoc*"
-                nil "makedocs")
-  (let ((dir (rustdoc-find-doc-dir)))
-    (rustdoc-convert-directory dir)))
+  (call-process
+   "cargo"
+   nil
+   "*cargo-makedoc*"
+   nil
+   "makedocs")
+  (rustdoc-convert-directory (rustdoc-find-doc-dir)))
 
 ;; from https://emacs.stackexchange.com/questions/16792/easiest-way-to-check-if-current-line-is-empty-ignoring-whitespace/16793#16793
 ;;;###autoload
