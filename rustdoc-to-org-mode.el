@@ -44,19 +44,18 @@ If DIRECTORY is not given, prompts user to select directory."
                  directory
                (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<dir>/share/doc/rust/html/std): "))))
     (rustdoc-to-org--get-filter)
-
     (dolist (file (directory-files-recursively dir ".html"))
-
       (if (with-temp-buffer
-              (insert-file-contents file)
-              (< 10 (count-lines (point-min)
-                                 (point-max))))
-
+            (insert-file-contents file)
+            (< 10 (count-lines (point-min)
+                               (point-max))))
           (progn
             (message "converting %s" file)
             (convert-file dir file))
 
-        (message "Ignoring conversion of %s as it is probably a redirect" file)))
+        (message "Ignoring conversion of %s as it is probably a redirect"
+                 file)))
+
     (message "Batch conversion done!")))
 
 (defun convert-file (dir file)
@@ -64,7 +63,6 @@ If DIRECTORY is not given, prompts user to select directory."
                              "/"
                              (file-name-sans-extension (file-relative-name file dir))
                              ".org")))
-
     (make-directory (file-name-directory outputfile)
                     t)
     (call-process "pandoc"
@@ -89,7 +87,7 @@ If DIRECTORY is not given, prompts user to select directory."
                      (not (next-line-is-header-p))) ;; Delete newlines unless the next line is a header.
             (kill-whole-line))
           (forward-line)))
-    (error (message "Missing file %s " outputfile))))
+    (error (message "Missing %s " outputfile))))
 
 ;;;###autoload
 (defun current-line-empty-p ()
