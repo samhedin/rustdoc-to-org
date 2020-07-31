@@ -1,4 +1,6 @@
-;; rustdoc-mode.el --- Browse rust documentation as .org files -*- lexical-binding: t -*-
+;; rustdoc.el --- Browse rust documentation as .org files -*- lexical-binding: t -*-
+
+;; Copyright (c) 2020 Sam Hedin
 
 ;; Author: Sam Hedin <sam.hedin@gmail.com>
 ;; URL: https://github.com/samhedin/rustdoc
@@ -177,6 +179,6 @@ Place the output in `rustdoc-search-directory', saving its relative path thanks 
 (dolist (mode '(rust-mode-hook rustic-mode-hook org-mode-hook))
   (add-hook mode 'rustdoc-mode))
 
-(provide 'rustdoc-mode)
+(provide 'rustdoc)
 
 ;;; rustdoc-mode.el ends here
