@@ -13,4 +13,13 @@
     (should (file-exists-p "debug_files/enum.Option.org"))
     (delete-file outputfile)))
 
+(ert-deftest rustdoc-convert-directory-test ()
+  (let* ((outputdir (concat default-directory  "debug_files/batch_output"))
+        (rustdoc-search-directory outputdir)
+      (inputdir (file-truename "debug_files")))
+    (rustdoc-convert-directory inputdir)
+    (should (< 2 (length (directory-files outputdir))))
+    (delete-directory outputdir t))) ; Remove this cleanup line if you need to debug
+
+
 ;;; rustdoc-to-org-test.el ends here
