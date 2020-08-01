@@ -56,7 +56,7 @@
 (defun rustdoc--get-filter ()
   "Install or update the rustdoc filter."
   (condition-case nil
-      (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc/master/filter.lua" rustdoc-lua-filter t)
+      (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/master/filter.lua" rustdoc-lua-filter t)
     (error (progn
              (if (file-exists-p rustdoc-lua-filter)
                  (message "Couldn't update pandoc filter, using existing one.")
@@ -122,12 +122,13 @@ Place the output in `rustdoc-search-directory', saving its relative path thanks 
                   nil
                   "*pandoc-log*"
                   nil
-                  (shell-quote-argument file)
+                  (file-truename file)
                   "--lua-filter"
                   (file-truename rustdoc-lua-filter)
                   "-o"
-                  (shell-quote-argument outputfile))
+                  (file-truename outputfile))
     (rustdoc-remove-whitespace outputfile)))
+
 
 ;;;###autoload
 (defun rustdoc-remove-whitespace (outputfile)
