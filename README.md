@@ -11,7 +11,7 @@ Installation is somewhat annoying at the moment, in the future I would like to m
 * Install ripgrep https://github.com/BurntSushi/ripgrep#installation
 * Install helm-ag from MELPA with <kbd>M-x package-install [RET] helm-ag [RET]</kbd> https://github.com/bridgesense/emacs-helm-ag#installation
 * Install cargo-makedocs by running `cargo install cargo-makedocs` https://github.com/Bunogi/cargo-makedocs
-* Install rustdoc-to-org-mode from MELPA with <kbd>M-x package-install [RET] rustdoc-to-org-mode [RET]</kbd>
+* Copy `rustdoc.el` and load it with `(require rustdoc.el)`
 
 ## Usage
 
@@ -20,6 +20,7 @@ Installation is somewhat annoying at the moment, in the future I would like to m
     * Run `M-x rustdoc-convert-current-package` to generate and convert docs for the package you are currently visiting.
 
 * Search the org files with `rustdoc-search` (bound to `C-#` by default) if you are in `Rust mode`, `Rustic mode` or `Org mode`.
+
 
 ## TODO
 
