@@ -1,4 +1,4 @@
-;; rustdoc.el --- Browse rust documentation as .org files -*- lexical-binding: t -*-
+;;; rustdoc.el --- Browse rust documentation as .org files -*- lexical-binding: t -*-
 
 ;; Copyright (c) 2020 Sam Hedin
 
@@ -186,4 +186,4 @@ Place the output in `rustdoc-search-directory', saving its relative path thanks 
 
 (provide 'rustdoc)
 
-;;; rustdoc-mode.el ends here
+;;; rustdoc.el ends here
