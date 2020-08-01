@@ -90,8 +90,7 @@ Place the files in `rustdoc-search-directory`
 If DIRECTORY is not given, prompts user to select directory."
   (interactive)
   (make-directory rustdoc-search-directory t)
-  (let ((default-directory "~/.local/bin/")
-        (dir (if directory
+  (let ((dir (if directory
                  directory
                (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<arch>/share/doc/rust/html/std): "))))
     (rustdoc--get-filter)
