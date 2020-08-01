@@ -100,7 +100,6 @@ If DIRECTORY is not given, prompts user to select directory."
             (< 10 (count-lines (point-min)
                                (point-max))))
           (progn
-            (message "converting %s" file)
             (rustdoc-convert-file dir file))
         (message "Ignoring conversion of %s as it is probably a redirect"
                  file)))
@@ -110,6 +109,7 @@ If DIRECTORY is not given, prompts user to select directory."
 (defun rustdoc-convert-file (dir file)
   "Convert a html FILE to org.
 Place the output in `rustdoc-search-directory', saving its relative path thanks to DIR."
+  (message "converting %s" file)
   (let* ((outputfile (concat rustdoc-search-directory
                              "/"
                              (file-name-sans-extension (file-relative-name file dir))
