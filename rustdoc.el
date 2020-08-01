@@ -56,7 +56,7 @@
 (defun rustdoc--get-filter ()
   "Install or update the rustdoc filter."
   (condition-case nil
-      (url-copy-file "thttps://raw.githubusercontent.com/samhedin/rustdoc/master/filter.lua" rustdoc-lua-filter t)
+      (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc/master/filter.lua" rustdoc-lua-filter t)
     (error (progn
              (if (file-exists-p rustdoc-lua-filter)
                  (message "Couldn't update pandoc filter, using existing one.")
