@@ -31,3 +31,5 @@ cabal.project.local~
 /debug_files/AsRef.org
 /debug_files/constant.arch.org
 /debug_files/datagram.org
+/ert-profile
+/ert-profile~
