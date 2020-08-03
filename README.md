@@ -12,6 +12,7 @@ Installation is somewhat annoying at the moment, in the future I would like to m
 * Install cargo https://doc.rust-lang.org/cargo/getting-started/installation.html
 * Install ripgrep with `cargo install ripgrep` or one of the alternatives: https://github.com/BurntSushi/ripgrep#installation
 * Install cargo-makedocs by running `cargo install cargo-makedocs` https://github.com/Bunogi/cargo-makedocs
+* Install fd with `cargo install fd`, or your package manager
 
 ### The package
 
@@ -24,10 +25,7 @@ There are two alternatives to install the package. Please make an issue if neith
 
 ## Usage
 
-* Run `M-x rustdoc-convert-directory` to convert all `.html` files in a directory. This will fetch the (very tiny) Pandoc filter from github. Batch conversion could take time and freeze emacs for large projects, so you might want to start a new emacs session or take a break while you're waiting.
-    * Generate all `.html` files for `std` by running `rustup doc`. Now convert `~/.rustup/toolchains/<arch>/share/doc/rust/html/std/)` with `rustdoc-convert-directory`.
-    * Run `M-x rustdoc-convert-current-package` to generate and convert docs for the package you are currently visiting.
-
+* Run `./convert.sh` to download and convert std library docs to `org`
 * Search the org files with `rustdoc-search` (bound to `C-#` by default) if you are in `Rust mode`, `Rustic mode` or `Org mode`.
 
 
