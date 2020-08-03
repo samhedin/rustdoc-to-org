@@ -18,7 +18,7 @@ function get_toolchain {
 
 fd . \
     -ehtml \
-    "$RUSTUP_HOME/toolchains/$(get_toolchain)/share/doc/rust/html" \
+    "$RUSTUP_HOME/toolchains/$(get_toolchain)/share/doc/rust/html/std" \
     -j$(num_cpus) \
     -x pandoc '{}' \
     --lua-filter "$LUA_FILTER" \
