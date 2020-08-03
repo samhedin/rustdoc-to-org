@@ -15,7 +15,7 @@ Installation is somewhat annoying at the moment, in the future I would like to m
 
 ### The package
 
-There are two alternatives at the moment. Please make an issue if these stop working, as I am figuring things out.
+There are two alternatives to install the package. Please make an issue if neither works for, as I am figuring things out.
 
 * With quelpa: `(quelpa '(rustdoc :fetcher github :repo "samhedin/rustdoc-to-org"))`
 * Manually
