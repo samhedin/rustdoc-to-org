@@ -13,7 +13,7 @@ function num_cpus {
 }
 
 function get_toolchain {
-    rustup show | gawk 'match($0, /^(.*) \(default\)$/, a) { print a[1]; exit }'
+    rustup show | sed -nr 's/(.*) \(default\)/\1/p' | head -n 1
 }
 
 fd . \
