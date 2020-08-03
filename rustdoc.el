@@ -35,12 +35,9 @@
 ;;; Commentary:
 
 ;; This package lets you convert rustdoc html-files to org mode files, and lets you browse them with `rustdoc-search'.
-;; Run `rustdoc-convert-directory' to convert all `.html` files in a directory. This will fetch the (very tiny) Pandoc filter from github.
-;; Batch conversion could take time and freeze Emacs for large projects, so you might want to start a new Emacs session or take a break while you're waiting.
-;; Generate all `html' files for `std' by running `rustup doc'. Now convert `~/.rustup/toolchains/<arch>/share/doc/rust/html/std/)' with `rustdoc-convert-directory'.
+;; Run ./convert.sh to download and convert all docs to org.
 ;; Run `M-x rustdoc-convert-current-package' to generate and convert docs for the package you are currently visiting.
 ;; You can customize the directory to store and search for org docs by editing `rustdoc-search-directory'.
-;; You can customize the location the lua filter is saved in by editing `rustdoc-lua-filter'
 
 ;;; Code:
 
@@ -49,19 +46,6 @@
 
 (defvar rustdoc-search-directory (concat user-emacs-directory "private/rustdoc")
   "Directory to search for converted org files.")
-
-(defvar rustdoc-lua-filter "~/.local/bin/filter.lua"
-  "Default save location for the rustdoc lua filter.")
-
-(defun rustdoc--get-filter ()
-  "Install or update the rustdoc filter."
-  (condition-case nil
-      (url-copy-file "https://raw.githubusercontent.com/samhedin/rustdoc-to-org/master/filter.lua" rustdoc-lua-filter t)
-    (error (progn
-             (if (file-exists-p rustdoc-lua-filter)
-                 (message "Couldn't update pandoc filter, using existing one.")
-               (error "Could not retrieve pandoc filter"))))))
-
 
 ;;;###autoload
 (defun rustdoc-search (search-term)
@@ -83,68 +67,6 @@ This is useful if you want to search for the name of a struct, enum or trait."
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
     (helm-ag rustdoc-search-directory (concat regex search-term))))
-
-
-;;;###autoload
-(defun rustdoc-convert-directory (&optional directory)
-  "Convert all .html files in DIRECTORY and its subdirectories to .org.
-Place the files in `rustdoc-search-directory`
-If DIRECTORY is not given, prompts user to select directory."
-  (interactive)
-  (make-directory rustdoc-search-directory t)
-  (let ((dir (if directory
-                 directory
-               (read-directory-name "Directory with rust html docs (for std: ~/.rustup/toolchains/<arch>/share/doc/rust/html/std): "))))
-    (rustdoc--get-filter)
-    (dolist (file (directory-files-recursively dir ".html"))
-      (if (with-temp-buffer
-            (insert-file-contents file)
-            (< 10 (count-lines (point-min)
-                               (point-max))))
-          (progn
-            (rustdoc-convert-file dir file))
-        (message "Ignoring conversion of %s as it is probably a redirect"
-                 file)))
-    (message "Batch conversion done!")))
-
-
-;;;###autoload
-(defun rustdoc-convert-file (dir file)
-  "Convert a html FILE to org.
-Place the output in `rustdoc-search-directory', saving its relative path thanks to DIR."
-  (message "converting %s" file)
-  (let* ((outputfile (concat rustdoc-search-directory
-                             "/"
-                             (file-name-sans-extension (file-relative-name file dir))
-                             ".org")))
-    (make-directory
-     (file-name-directory outputfile)
-     t)
-    (call-process "pandoc"
-                  nil
-                  "*pandoc-log*"
-                  nil
-                  (file-truename file)
-                  "--lua-filter"
-                  (file-truename rustdoc-lua-filter)
-                  "-o"
-                  (file-truename outputfile))
-    (rustdoc-remove-whitespace outputfile)))
-
-
-;;;###autoload
-(defun rustdoc-remove-whitespace (outputfile)
-  "Remove blank lines from OUTPUTFILE, unless the line after is a header."
-  (condition-case nil
-      (with-temp-file outputfile
-        (insert-file-contents outputfile)
-        (goto-char (point-min))
-        (while (not (eobp))
-          (when (and (rustdoc--current-line-empty-p)
-                     (not (rustdoc--next-line-is-header-p)))
-            (kill-whole-line))
-          (forward-line)))
-    (error (message "Missing %s " outputfile))))
 
 
 ;;;###autoload

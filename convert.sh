@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+rustup doc
+
 LUA_FILTER=filter.lua
 
 if [ "$RUSTUP_HOME" = "" ]; then
