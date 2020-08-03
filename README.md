@@ -1,17 +1,26 @@
 # Rustdoc to org
-A Pandoc filter that converts rust documentation to .org-files, and a minor mode to go with! This is still in a very early state, but maybe it can help someone.
+A Pandoc filter that converts rust documentation to .org-files, and a minor mode to go with!
 ![Demo with helm ag](demo.gif)
 
 ## Installation
 
 Installation is somewhat annoying at the moment, in the future I would like to make it easier. However, most of these should not be too painful to setup.
 
+### Prequisites
+
 * Install Pandoc https://pandoc.org/installing.html
 * Install cargo https://doc.rust-lang.org/cargo/getting-started/installation.html
 * Install ripgrep with `cargo install ripgrep` or one of the alternatives: https://github.com/BurntSushi/ripgrep#installation
 * Install cargo-makedocs by running `cargo install cargo-makedocs` https://github.com/Bunogi/cargo-makedocs
-* Install helm-ag from MELPA with <kbd>M-x package-install [RET] helm-ag [RET]</kbd> https://github.com/bridgesense/emacs-helm-ag#installation
-* Copy `rustdoc.el` and load it with `(require rustdoc.el)`
+
+### The package
+
+There are two alternatives at the moment. Please make an issue if these stop working, as I am figuring things out.
+
+* With quelpa: `(quelpa '(rustdoc :fetcher github :repo "samhedin/rustdoc-to-org"))`
+* Manually
+    * Install helm-ag from MELPA with <kbd>M-x package-install [RET] helm-ag [RET]</kbd> https://github.com/bridgesense/emacs-helm-ag#installation
+    * Copy `rustdoc.el` and load it with `(require rustdoc.el)`
 
 ## Usage
 
