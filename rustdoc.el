@@ -62,6 +62,7 @@
                  (message "Couldn't update pandoc filter, using existing one.")
                (error "Could not retrieve pandoc filter"))))))
 
+
 ;;;###autoload
 (defun rustdoc-search (search-term)
   "Search the rust documentation for SEARCH-TERM.
@@ -82,6 +83,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
     (helm-ag rustdoc-search-directory (concat regex search-term))))
+
 
 ;;;###autoload
 (defun rustdoc-convert-directory (&optional directory)
@@ -104,6 +106,7 @@ If DIRECTORY is not given, prompts user to select directory."
         (message "Ignoring conversion of %s as it is probably a redirect"
                  file)))
     (message "Batch conversion done!")))
+
 
 ;;;###autoload
 (defun rustdoc-convert-file (dir file)
@@ -174,8 +177,8 @@ Place the output in `rustdoc-search-directory', saving its relative path thanks 
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
-  "Lets you convert rust html docs to .org, and search the converted org files."
-  :lighter " rustdoc in org"
+  "Convert rust html docs to .org, and browse the converted docs."
+  :lighter " browse rust documentation"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-#") 'rustdoc-search)
             map))
