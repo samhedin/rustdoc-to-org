@@ -76,7 +76,7 @@
                               (progn
                                 (url-copy-file src dst t)
                                 (when (memq :exec opts)
-                                  (call-process (executable-find "chmod") nil t nil "+x" dst)))
+                                  (call-process (executable-find "chmod") nil nil nil "+x" dst)))
                             (error (progn
                                      (if (file-exists-p dst)
                                          (message (format "Could not update %s, using existing one" dst))
