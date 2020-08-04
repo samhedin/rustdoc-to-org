@@ -42,7 +42,6 @@ fd . -td -x mkdir -p "$DEST_DIR/{}"
 
 ## Find redirect files (removes $DOC_PATH prefix)
 ignore_file="$(mktemp)"
-echo "$ignore_file"
 rg -l "<p>Redirecting to <a href=\"[^\"]*\"" "$DOC_PATH" | \
     awk -v PRE="$DOC_PATH" '
 BEGIN { m = length(PRE)
