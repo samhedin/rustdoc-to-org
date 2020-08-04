@@ -69,7 +69,7 @@
                                                              "filter.lua"))))
 
 (defun rustdoc--install-resources ()
-  "Install or update the rustdoc filter."
+  "Install or update the rustdoc resources."
   (dolist (resource rustdoc-resources)
     (pcase resource
       (`(,dst ,opts ,src) (condition-case nil
