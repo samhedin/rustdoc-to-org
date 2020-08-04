@@ -46,7 +46,7 @@ ignore_file="$(mktemp)"
 ## This is slightly wonky, but changes all the '/' to '\/' in $DOC_PATH
 ## and uses that to remove the leading path from $ignore_file entries,
 ## as fd wants relative paths here.
-sed_path=$(echo $DOC_PATH | sed 's/\//\\\//g')
+sed_path=$(echo "$DOC_PATH" | sed 's/\//\\\//g')
 rg -l "<p>Redirecting to <a href=\"[^\"]*\"" "$DOC_PATH" | \
     sed -nr "s/^$sed_path\///p" > "$ignore_file"
 
@@ -54,7 +54,7 @@ rg -l "<p>Redirecting to <a href=\"[^\"]*\"" "$DOC_PATH" | \
 fd . \
     -ehtml \
     --ignore-file "$ignore_file" \
-    -j$(expr 2 \* $(num_cpus)) \
+    -j"$(expr 2 \* "$(num_cpus)")" \
     -x pandoc '{}' \
     --lua-filter "$LUA_FILTER" \
     -o "$DEST_DIR/{.}.org"
