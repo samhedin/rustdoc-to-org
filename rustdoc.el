@@ -43,9 +43,45 @@
 
 (require 'helm-ag)
 (require 'url)
+;; FIXME: projectile is to be replaced with project.el in Emacs proper,
+;;        we should either support both, or eventually just project.el
+(require 'projectile)
 
 (defvar rustdoc-search-directory (concat user-emacs-directory "private/rustdoc")
   "Directory to search for converted org files.")
+
+(defvar rustdoc-lua-filter (concat (file-name-as-directory (getenv "HOME"))
+                                   ".local/bin/rustdoc-to-org-filter.lua")
+  "Save location for the rustdoc lua filter.")
+
+(defvar rustdoc-convert-prog (concat (file-name-as-directory (getenv "HOME"))
+                                   ".local/bin/rustdoc-to-org-convert.sh")
+  "Save location for the rustdoc conversion script.")
+
+(defvar rustdoc-source-user "snyball")
+
+(defvar rustdoc-source-repo (format "https://raw.githubusercontent.com/%s/rustdoc-to-org/master/"
+                                    rustdoc-source-user))
+
+(defvar rustdoc-resources `((,rustdoc-convert-prog (:exec) ,(concat rustdoc-source-repo
+                                                                    "convert.sh"))
+                            (,rustdoc-lua-filter () ,(concat rustdoc-source-repo
+                                                             "filter.lua"))))
+
+(defun rustdoc--install-resources ()
+  "Install or update the rustdoc filter."
+  (dolist (resource rustdoc-resources)
+    (pcase resource
+      (`(,dst ,opts ,src) (condition-case nil
+                              (progn
+                                (url-copy-file src dst t)
+                                (when (memq :exec opts)
+                                  (call-process (executable-find "chmod") nil t nil "+x" dst)))
+                            (error (progn
+                                     (if (file-exists-p dst)
+                                         (message (format "Could not update %s, using existing one" dst))
+                                       (error (format "Could not retrieve %s" dst)))))))
+      (x (error "Invalid resource spec: %s" x)))))
 
 ;;;###autoload
 (defun rustdoc-search (search-term)
