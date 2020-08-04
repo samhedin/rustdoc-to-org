@@ -3,6 +3,7 @@
 ;; Copyright (c) 2020 Sam Hedin
 
 ;; Author: Sam Hedin <sam.hedin@gmail.com>
+;;         Jonas Møller <jonas.moeller2@protonmail.com>
 ;; URL: https://github.com/samhedin/rustdoc
 ;; Version: 0.5
 ;; Keywords: docs languages
@@ -56,7 +57,7 @@
                                    ".local/bin/rustdoc-to-org-convert.sh")
   "Save location for the rustdoc conversion script.")
 
-(defvar rustdoc-source-user "snyball")
+(defvar rustdoc-source-user "samhedin")
 
 (defvar rustdoc-source-repo (format "https://raw.githubusercontent.com/%s/rustdoc-to-org/master/"
                                     rustdoc-source-user))
