@@ -43,9 +43,7 @@
 
 (require 'helm-ag)
 (require 'url)
-;; FIXME: projectile is to be replaced with project.el in Emacs proper,
-;;        we should either support both, or eventually just project.el
-(require 'projectile)
+(require 'lsp)
 
 (defvar rustdoc-search-directory (concat user-emacs-directory "private/rustdoc")
   "Directory to search for converted org files.")
@@ -105,32 +103,28 @@ This is useful if you want to search for the name of a struct, enum or trait."
     (helm-ag rustdoc-search-directory (concat regex search-term))))
 
 
-;;;###autoload
 (defun rustdoc-convert-current-package ()
-  "Generate and convert the documentation for the current rust package."
+  "Convert the documentation for a project, and its dependencies."
   (interactive)
-  (call-process "cargo" nil "*cargo-makedoc*" nil "makedocs")
-  (rustdoc-convert-directory
-   (concat
-    (locate-dominating-file (buffer-file-name) "target")
-    "target/doc")))
-
-;; from https://emacs.stackexchange.com/questions/16792/easiest-way-to-check-if-current-line-is-empty-ignoring-whitespace/16793#16793
-(defun rustdoc--current-line-empty-p ()
-  "Return whether the current line is empty or not."
-  (save-excursion
-    (beginning-of-line)
-    (looking-at-p "[[:space:]]*$")))
-
-(defun rustdoc--next-line-is-header-p ()
-  "Return whether the next line is an org mode header or not."
-  (save-excursion
-    (forward-line)
-    (string-prefix-p
-     "*"
-     (buffer-substring-no-properties
-      (line-beginning-position)
-      (line-end-position)))))
+  (let* ((proj (lsp-workspace-root))
+         (docs-src (concat (file-name-as-directory proj) "target/doc"))
+         ;; FIXME: Currently, the converted files are stored inside the project.
+         ;;        I want to store them elsewhere, as many projects could share
+         ;;        the same docs. *However* that would have to be versioned, so
+         ;;        we'll have to figure out a way to coerce `<crate>-<version>`
+         ;;        strings out of cargo, or just parse the Cargo.toml file, but
+         ;;        then we'd have to review different parsing solutions.
+         ;;
+         ;;        For now, I think this is an ok solution.
+         (docs-dst (concat (file-name-as-directory proj) ".rustdoc-org"))
+         (finish-func (lambda (p)
+                        (message (format "Finished converting docs for: %s" proj)))))
+    (async-start-process
+     "*rust doc to org*"
+     rustdoc-convert-prog
+     finish-func
+     docs-src
+     docs-dst)))
 
 
 ;;;###autoload
