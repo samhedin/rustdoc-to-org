@@ -45,7 +45,7 @@
 (require 'url)
 (require 'lsp)
 
-(defvar rustdoc-search-directory (concat user-emacs-directory "private/rustdoc")
+(defvar rustdoc-local-directory ".rustdoc-org"
   "Directory to search for converted org files.")
 
 (defvar rustdoc-lua-filter (concat (file-name-as-directory (getenv "HOME"))
@@ -95,12 +95,14 @@ This is useful if you want to search for the name of a struct, enum or trait."
                       nil
                       (thing-at-point 'symbol))))
   (let ((helm-ag-base-command "rg  --smart-case --no-heading --color=never --line-number")
+        (search-directory (concat (file-name-as-directory (lsp-workspace-root))
+                                  rustdoc-local-directory))
         (regex (if current-prefix-arg
                    (progn
                      (setq current-prefix-arg nil)
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
-    (helm-ag rustdoc-search-directory (concat regex search-term))))
+    (helm-ag search-directory (concat regex search-term))))
 
 
 (defun rustdoc-convert-current-package ()
@@ -116,7 +118,8 @@ This is useful if you want to search for the name of a struct, enum or trait."
          ;;        then we'd have to review different parsing solutions.
          ;;
          ;;        For now, I think this is an ok solution.
-         (docs-dst (concat (file-name-as-directory proj) ".rustdoc-org"))
+         (docs-dst (concat (file-name-as-directory proj)
+                           rustdoc-local-directory))
          (finish-func (lambda (p)
                         (message (format "Finished converting docs for: %s" proj)))))
     (async-start-process
