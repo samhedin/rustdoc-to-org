@@ -147,6 +147,19 @@ This is useful if you want to search for the name of a struct, enum or trait."
 
 
 ;;;###autoload
+(defun rustdoc-setup ()
+  "First-time setup for rustdoc."
+  (interactive)
+  (rustdoc--install-resources)
+  (async-start-process
+   "*rust doc to org (std)*"
+   rustdoc-convert-prog
+   (lambda (p)
+     (message "Finished converting docs for: std"))
+   "std"))
+
+
+;;;###autoload
 (define-minor-mode rustdoc-mode
   "Convert rust html docs to .org, and browse the converted docs."
   :lighter " browse rust documentation"
