@@ -40,15 +40,17 @@ cd "$DOC_PATH" || exit 1
 ## Copy directory structure
 fd . -td -x mkdir -p "$DEST_DIR/{}"
 
-## Find redirect files
+## Find redirect files (removes $DOC_PATH prefix)
 ignore_file="$(mktemp)"
-
-## This is slightly wonky, but changes all the '/' to '\/' in $DOC_PATH
-## and uses that to remove the leading path from $ignore_file entries,
-## as fd wants relative paths here.
-sed_path="$(echo "$DOC_PATH" | sed 's/\//\\\//g')"
+echo "$ignore_file"
 rg -l "<p>Redirecting to <a href=\"[^\"]*\"" "$DOC_PATH" | \
-    sed -nr "s/^$sed_path\///p" > "$ignore_file"
+    awk -v PRE="$DOC_PATH" '
+BEGIN { m = length(PRE)
+        if (!match(PRE, /\/$/))
+           m += 1 }
+{ print substr($0, m+1) }
+' \
+    > "$ignore_file"
 
 ## Convert files, we use 2 * $(num_cpus), as pandoc seems to be slightly IO-bound
 fd . \
