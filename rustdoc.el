@@ -66,6 +66,7 @@
                             (,rustdoc-lua-filter () ,(concat rustdoc-source-repo
                                                              "filter.lua"))))
 
+;;;###autoload
 (defun rustdoc--install-resources ()
   "Install or update the rustdoc resources."
   (dolist (resource rustdoc-resources)
@@ -94,7 +95,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
                       nil
                       nil
                       (thing-at-point 'symbol))))
-  (let ((helm-ag-base-command "rg  --smart-case --no-heading --color=never --line-number")
+  (let ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
         (search-directory (concat (file-name-as-directory (lsp-workspace-root))
                                   rustdoc-local-directory))
         (regex (if current-prefix-arg
@@ -105,6 +106,15 @@ This is useful if you want to search for the name of a struct, enum or trait."
     (helm-ag search-directory (concat regex search-term))))
 
 
+(if (< emacs-major-version 27)
+    (defun rustdoc--xdg-data-home ()
+      (or (getenv "XDG_DATA_HOME")
+          (concat (file-name-as-directory (getenv "HOME"))
+                  ".local/share")))
+  (fset 'rustdoc--xdg-data-home 'xdg-data-home))
+
+
+;;;###autoload
 (defun rustdoc-convert-current-package ()
   "Convert the documentation for a project, and its dependencies."
   (interactive)
@@ -122,6 +132,12 @@ This is useful if you want to search for the name of a struct, enum or trait."
                            rustdoc-local-directory))
          (finish-func (lambda (p)
                         (message (format "Finished converting docs for: %s" proj)))))
+    (let ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
+                            "emacs/rust-doc/std"))
+          (link-name (concat (file-name-as-directory proj)
+                             (file-name-as-directory rustdoc-local-directory)
+                             "std")))
+      (make-symbolic-link link-tgt link-name t))
     (async-start-process
      "*rust doc to org*"
      rustdoc-convert-prog
