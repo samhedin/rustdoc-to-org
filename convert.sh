@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-## Get the absolute path of the filter, so that it'll work after chdir
-LUA_FILTER="$(realpath filter.lua)"
+LUA_FILTER="$HOME/.local/bin/rustdoc-to-org-filter.lua"
 
 function num_cpus {
     rg -c '^$' /proc/cpuinfo
@@ -11,21 +10,35 @@ function get_toolchain {
     rustup show | sed -nr 's/(.*) \(default\)/\1/p' | head -n 1
 }
 
-## Handle arguments
-LIBRARY="${1:-std}"
-TARGET="${2:-$(get_toolchain)}"
+if [ "$1" = "" ] || [ "$1" = "--help"  ]; then
+    MY_NAME="$(basename "$0")"
+    echo "Usage:"
+    echo "  $MY_NAME <library>"
+    echo "  $MY_NAME <docs src> <docs org dst>"
+    exit 0
+fi
 
-## Users can change the location of the rustup directory
-RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}"
+DOC_PATH="$1"
+DEST_DIR="$2"
 
-DOC_PATH="$RUSTUP_HOME/toolchains/$TARGET/share/doc/rust/html/$LIBRARY"
-DEST_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/emacs/rust-doc/$LIBRARY"
+if [ "$DEST_DIR" = "" ]; then
+    LIBRARY="$1"
+    TARGET="$(get_toolchain)"
 
-mkdir -p "$DEST_DIR" 2>/dev/null
-pushd "$DOC_PATH" &>/dev/null
+    ## Users can change the location of the rustup directory
+    RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}"
+    ## Set
+    DOC_PATH="$RUSTUP_HOME/toolchains/$TARGET/share/doc/rust/html/$LIBRARY"
+    DEST_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/emacs/rust-doc/$LIBRARY"
+
+    echo "Generating org files in: $DEST_DIR"
+fi
+
+mkdir -p "$DEST_DIR" || exit 1
+cd "$DOC_PATH" || exit 1
 
 ## Copy directory structure
-fd . -td -x mkdir -p "$DEST_DIR/{}" 2>/dev/null
+fd . -td -x mkdir -p "$DEST_DIR/{}"
 
 ## Find redirect files
 ignore_file="$(mktemp)"
