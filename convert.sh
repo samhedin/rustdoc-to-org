@@ -51,11 +51,11 @@ BEGIN { m = length(PRE)
 ' \
     > "$ignore_file"
 
-## Convert files, we use 2 * $(num_cpus), as pandoc seems to be slightly IO-bound
+## Convert files
 fd . \
     -ehtml \
     --ignore-file "$ignore_file" \
-    -j"$(expr 2 \* "$(num_cpus)")" \
+    -j"$(num_cpus)" \
     -x pandoc '{}' \
     --lua-filter "$LUA_FILTER" \
     -o "$DEST_DIR/{.}.org"
