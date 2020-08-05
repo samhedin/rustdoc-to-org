@@ -29,7 +29,7 @@ if [ "$DEST_DIR" = "" ]; then
     RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}"
     ## Set
     DOC_PATH="$RUSTUP_HOME/toolchains/$TARGET/share/doc/rust/html/$LIBRARY"
-    DEST_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/emacs/rust-doc/$LIBRARY"
+    DEST_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/emacs/rustdoc/$LIBRARY"
 
     echo "Generating org files in: $DEST_DIR"
 fi

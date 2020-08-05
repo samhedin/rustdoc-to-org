@@ -125,7 +125,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
                             rustdoc-local-directory)
                     t)
     (let ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
-                            "emacs/rust-doc/std"))
+                            "emacs/rustdoc/std"))
           (link-name (concat (file-name-as-directory proj)
                              (file-name-as-directory rustdoc-local-directory)
                              "std")))
