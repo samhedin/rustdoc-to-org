@@ -4,7 +4,7 @@ A Pandoc filter that converts rust documentation to .org-files, and a minor mode
 
 ## Installation
 
-Installation is somewhat annoying at the moment, in the future I would like to make it easier. However, most of these should not be too painful to setup.
+Installation is somewhat annoying at the moment. However, most of these should not be too painful to setup.
 
 ### Prequisites
 
@@ -16,7 +16,7 @@ Installation is somewhat annoying at the moment, in the future I would like to m
 
 ### The package
 
-There are two alternatives to install the package. Please make an issue if neither works for you, as I am figuring things out.
+There are two alternatives to install the package. Please make an issue if either stops working, as rustdoc is currently changing rapidly.
 
 * With quelpa: `(quelpa '(rustdoc :fetcher github :repo "samhedin/rustdoc-to-org"))`
 * Manually
@@ -25,9 +25,9 @@ There are two alternatives to install the package. Please make an issue if neith
 
 ## Usage
 
-* Run `./convert.sh` to download and convert std library docs to `org`
+* Run `M-x rustdoc-setup` to download some files rustdoc needs to convert rust documentation, and convert `std`.
+* You can now convert package-specific documentation with `M-x rustdoc-convert-current-package`
 * Search the org files with `rustdoc-search` (bound to `C-#` by default) if you are in `Rust mode`, `Rustic mode` or `Org mode`.
-
 
 ## TODO
 
