@@ -112,7 +112,9 @@ This is useful if you want to search for the name of a struct, enum or trait."
       (or (getenv "XDG_DATA_HOME")
           (concat (file-name-as-directory (getenv "HOME"))
                   ".local/share")))
-  (fset 'rustdoc--xdg-data-home 'xdg-data-home))
+  (progn
+    (require 'xdg)
+    (fset 'rustdoc--xdg-data-home 'xdg-data-home)))
 
 
 ;;;###autoload
