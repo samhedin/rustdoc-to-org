@@ -104,6 +104,8 @@ This is useful if you want to search for the name of a struct, enum or trait."
                      (setq current-prefix-arg nil)
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
+    (unless (file-directory-p search-directory)
+      (rustdoc-create-project-dir))
     (helm-ag search-directory (concat regex search-term))))
 
 
@@ -116,11 +118,24 @@ This is useful if you want to search for the name of a struct, enum or trait."
     (require 'xdg)
     (fset 'rustdoc--xdg-data-home 'xdg-data-home)))
 
+;;;###autoload
+(defun rustdoc-create-project-dir ()
+(let* ((proj (lsp-workspace-root)))
+    (make-directory (concat (file-name-as-directory proj)
+                            rustdoc-local-directory)
+                    t)
+    (let ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
+                            "emacs/rust-doc/std"))
+          (link-name (concat (file-name-as-directory proj)
+                             (file-name-as-directory rustdoc-local-directory)
+                             "std")))
+      (make-symbolic-link link-tgt link-name t))))
 
 ;;;###autoload
 (defun rustdoc-convert-current-package ()
   "Convert the documentation for a project, and its dependencies."
   (interactive)
+  (rustdoc-create-project-dir)
   (let* ((proj (lsp-workspace-root))
          (docs-src (concat (file-name-as-directory proj) "target/doc"))
          ;; FIXME: Currently, the converted files are stored inside the project.
@@ -135,15 +150,6 @@ This is useful if you want to search for the name of a struct, enum or trait."
                            rustdoc-local-directory))
          (finish-func (lambda (p)
                         (message (format "Finished converting docs for: %s" proj)))))
-    (make-directory (concat (file-name-as-directory proj)
-                            rustdoc-local-directory)
-                    t)
-    (let ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
-                            "emacs/rust-doc/std"))
-          (link-name (concat (file-name-as-directory proj)
-                             (file-name-as-directory rustdoc-local-directory)
-                             "std")))
-      (make-symbolic-link link-tgt link-name t))
     (async-start-process
      "*rust doc to org*"
      rustdoc-convert-prog
@@ -157,6 +163,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
   "First-time setup for rustdoc."
   (interactive)
   (rustdoc--install-resources)
+  (message "Converting the standard library")
   (async-start-process
    "*rust doc to org (std)*"
    rustdoc-convert-prog
