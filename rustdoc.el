@@ -46,15 +46,15 @@
 (require 'url)
 (require 'lsp)
 
-(defvar rustdoc-local-directory ".rustdoc-org"
+(defvar rustdoc-local-directory ".rustdoc"
   "Directory to search for converted org files.")
 
 (defvar rustdoc-lua-filter (concat (file-name-as-directory (getenv "HOME"))
-                                   ".local/bin/rustdoc-to-org-filter.lua")
+                                   ".local/bin/rustdoc-filter.lua")
   "Save location for the rustdoc lua filter.")
 
 (defvar rustdoc-convert-prog (concat (file-name-as-directory (getenv "HOME"))
-                                   ".local/bin/rustdoc-to-org-convert.sh")
+                                   ".local/bin/rustdoc-convert.sh")
   "Save location for the rustdoc conversion script.")
 
 (defvar rustdoc-source-user "samhedin")
@@ -151,7 +151,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
          (finish-func (lambda (p)
                         (message (format "Finished converting docs for: %s" proj)))))
     (async-start-process
-     "*rust doc to org*"
+     "*rustdoc-convert*"
      rustdoc-convert-prog
      finish-func
      docs-src
@@ -165,10 +165,10 @@ This is useful if you want to search for the name of a struct, enum or trait."
   (rustdoc--install-resources)
   (message "Converting the standard library")
   (async-start-process
-   "*rust doc to org (std)*"
+   "*rustdoc-std-conversion*"
    rustdoc-convert-prog
    (lambda (p)
-     (message "Finished converting docs for: std"))
+     (message "Finished converting docs for std"))
    "std"))
 
 
@@ -180,7 +180,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
             (define-key map (kbd "C-#") 'rustdoc-search)
             map))
 
-(dolist (mode '(rust-mode-hook rustic-mode-hook org-mode-hook))
+(dolist (mode '(rust-mode-hook rustic-mode-hook))
   (add-hook mode 'rustdoc-mode))
 
 (provide 'rustdoc)

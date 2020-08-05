@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-LUA_FILTER="$HOME/.local/bin/rustdoc-to-org-filter.lua"
+LUA_FILTER="$HOME/.local/bin/rustdoc-filter.lua"
 
 function num_cpus {
     rg -c '^$' /proc/cpuinfo
