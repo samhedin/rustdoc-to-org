@@ -36,9 +36,8 @@
 ;;; Commentary:
 
 ;; This package lets you convert rustdoc html-files to org mode files, and lets you browse them with `rustdoc-search'.
-;; Run ./convert.sh to download and convert all docs to org.
+;; Run `M-x rustdoc-setup' to download the required files and convert the rust standard library.
 ;; Run `M-x rustdoc-convert-current-package' to generate and convert docs for the package you are currently visiting.
-;; You can customize the directory to store and search for org docs by editing `rustdoc-search-directory'.
 
 ;;; Code:
 
@@ -71,7 +70,8 @@
 
 (defvar rustdoc-current-project (concat (file-name-as-directory (rustdoc--xdg-data-home))
                                                 "emacs/rustdoc/std")
-  "Location to search for documentation. Search std by default, then last open project.")
+  "Location to search for documentation.
+All projects and std by default, otherwise last open project and std.")
 
 (defvar rustdoc-active-modes '(rust-mode rustic-mode)
   "Modes that rustdoc should update `rustdoc-current-project' in.")
