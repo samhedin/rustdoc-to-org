@@ -4,6 +4,11 @@ standard:
 	pandoc enum.Option.html  --lua-filter ../filter.lua -t native -o filterednative ;\
 	pandoc -f native filterednative -o option.org
 
+standard_unfiltered:
+	cd debug_files ;\
+	pandoc enum.Option.html -t native -o filterednative ;\
+	pandoc -f native filterednative -o option.org
+
 trait:
 	cd debug_files ;\
 	pandoc trait.AsRef.html --lua-filter ../filter.lua -t native -o filterednative ;\

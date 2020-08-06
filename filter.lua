@@ -35,6 +35,10 @@ Header = function(el)
   if el.classes:includes("fqn") and el.level == 1 then
     return pandoc.Header(1, el.content)
   end
+  if el.classes:includes("hidden") then
+    return pandoc.Plain(el.content) -- We hide the headlines from search results by making them plain. Maybe the solution can be nicer, need to think about it.
+    -- return pandoc.Header(4, el.content)
+  end
 
 
   if el.classes:includes("method") then
