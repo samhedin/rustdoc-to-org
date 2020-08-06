@@ -163,9 +163,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
          (docs-dst (concat (file-name-as-directory proj)
                            rustdoc-local-directory))
          (finish-func (lambda (p)
-                        (rustdoc-remove-whitespace docs-dst)
                         (message (format "Finished converting docs for: %s" proj)))))
-    (message "Converting docs for %s" proj)
     (async-start-process
      "*rustdoc-convert*"
      rustdoc-convert-prog
@@ -173,33 +171,6 @@ This is useful if you want to search for the name of a struct, enum or trait."
      docs-src
      docs-dst)))
 
-;;;###autoload
-(defun rustdoc-remove-whitespace (dir)
-  (dolist (file (directory-files-recursively dir "\.org"))
-    (message "Deleting whitespace from %s" file)
-      (with-temp-file file
-        (insert-file-contents file)
-        (goto-char (point-min))
-        (while (not (eobp))
-          (when (and (rustdoc-current-line-empty-p)
-                     (not (rustdoc-next-line-is-header-p))) ;; Delete newlines unless the next line is a header.
-            (kill-whole-line))
-          (forward-line)))))
-
-
-;;;###autoload
-(defun rustdoc-current-line-empty-p ()
-  (save-excursion
-    (beginning-of-line)
-    (looking-at-p "[[:space:]]*$")))
-
-;;;###autoload
-(defun rustdoc-next-line-is-header-p ()
-  (save-excursion
-    (forward-line)
-    (string-prefix-p "*"
-                     (buffer-substring-no-properties (line-beginning-position)
-                                                     (line-end-position)))))
 
 ;;;###autoload
 (defun rustdoc-setup ()
