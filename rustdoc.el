@@ -56,10 +56,6 @@
     (require 'xdg)
     (fset 'rustdoc--xdg-data-home 'xdg-data-home)))
 
-
-(defvar rustdoc-local-directory ".rustdoc"
-  "Directory to search for converted org files.")
-
 (defvar rustdoc-lua-filter (concat (file-name-as-directory (getenv "HOME"))
                                    ".local/bin/rustdoc-filter.lua")
   "Save location for the rustdoc lua filter.")
