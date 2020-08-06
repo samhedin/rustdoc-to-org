@@ -68,8 +68,7 @@
 (defvar rustdoc-source-repo (format "https://raw.githubusercontent.com/%s/rustdoc-to-org/master/"
                                     rustdoc-source-user))
 
-(defvar rustdoc-current-project (concat (file-name-as-directory (rustdoc--xdg-data-home))
-                                                "emacs/rustdoc/std")
+(defvar rustdoc-current-project nil
   "Location to search for documentation.
 All projects and std by default, otherwise last open project and std.")
 
