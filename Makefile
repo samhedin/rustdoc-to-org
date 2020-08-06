@@ -9,6 +9,18 @@ standard_unfiltered:
 	pandoc enum.Option.html -t native -o filterednative ;\
 	pandoc -f native filterednative -o option.org
 
+
+primitive:
+	cd debug_files ;\
+	pandoc primitive.i16.html  --lua-filter ../filter.lua -t native -o filterednative ;\
+	pandoc -f native filterednative -o primitive.i16.org
+
+
+primitive_unfiltered:
+	cd debug_files ;\
+	pandoc primitive.i16.html -t native -o filterednative ;\
+	pandoc -f native filterednative -o primitive.i16.org
+
 trait:
 	cd debug_files ;\
 	pandoc trait.AsRef.html --lua-filter ../filter.lua -t native -o filterednative ;\
