@@ -149,6 +149,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
   "Convert the documentation for a project and its dependencies."
   (interactive)
   (rustdoc-create-project-dir)
+  (call-process "cargo" nil nil nil "makedocs")
   (let* ((proj (lsp-workspace-root))
          (docs-src (concat (file-name-as-directory proj) "target/doc"))
          ;; FIXME: Currently, the converted files are stored inside the project.
