@@ -122,20 +122,23 @@ This is useful if you want to search for the name of a struct, enum or trait."
                      (setq current-prefix-arg nil)
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
-    (unless (file-directory-p (current-project-doc-destination))
+    (unless (file-directory-p rustdoc-save-location)
+      (message "Could not find std. Please run `M-x rustdoc-setup' to install it."))
+    (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
-    (helm-ag (current-project-doc-destination) (concat regex search-term))))
+    (helm-ag (rustdoc-current-project-doc-destination) (concat regex search-term))))
 
-(defun current-project-doc-destination ()
+(defun rustdoc-current-project-doc-destination ()
+  "The location of the documentation for the last seen project."
   (concat rustdoc-save-location "/" (file-name-nondirectory (directory-file-name (file-name-directory (concat rustdoc-current-project "/"))))))
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
   "Create a rustdoc directory for the current project. Link with std."
-  (make-directory (current-project-doc-destination) t)
+  (make-directory (rustdoc-current-project-doc-destination) t)
     (let* ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
                             "emacs/rustdoc/std"))
-          (link-name (concat (current-project-doc-destination) "/std")))
+          (link-name (concat (rustdoc-current-project-doc-destination) "/std")))
       (make-symbolic-link link-tgt link-name t)))
 
 
@@ -143,6 +146,8 @@ This is useful if you want to search for the name of a struct, enum or trait."
 (defun rustdoc-convert-current-package ()
   "Convert the documentation for a project and its dependencies."
   (interactive)
+
+  (message "Converting documentation for %s " rustdoc-current-project)
   (call-process "cargo" nil nil nil "makedocs")
   (let* ((docs-src (concat (file-name-as-directory rustdoc-current-project) "target/doc"))
          ;; FIXME: Currently, the converted files are stored inside the project.
@@ -155,7 +160,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
          ;;        For now, I think this is an ok solution.
          ;; Update: Converted files are now stored in a directory next to where std is stored.
          (finish-func (lambda (p)
-                        (message (format "Finished converting docs for: %s" rustdoc-current-project)))))
+                        (message (format "Finished converting docs for %s" rustdoc-current-project)))))
 
     (rustdoc-create-project-dir)
     (async-start-process
@@ -163,7 +168,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
      rustdoc-convert-prog
      finish-func
      docs-src
-     (current-project-doc-destination))))
+     (rustdoc-current-project-doc-destination))))
 
 
 
@@ -173,7 +178,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
   "First-time setup for rustdoc."
   (interactive)
   (rustdoc--install-resources)
-  (message "Converting the standard library")
+  (message "Setup: converting the standard library")
   (async-start-process
    "*rustdoc-std-conversion*"
    rustdoc-convert-prog
