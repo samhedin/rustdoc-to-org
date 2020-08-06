@@ -123,7 +123,9 @@ This is useful if you want to search for the name of a struct, enum or trait."
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
     (unless (file-directory-p rustdoc-save-location)
-      (message "Could not find std. Please run `M-x rustdoc-setup' to install it."))
+      (rustdoc-setup)
+      (error "Setting up rustdoc for the first time. Please run your search again when you see the message Finished converting...")) ; FIXME: If the user has not run rustdoc-setup yet, we do it for them.
+    ; Since this is async this will immediately continue and result in a failed search. Once the conversion finishes search will work.
     (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
     (helm-ag (rustdoc-current-project-doc-destination) (concat regex search-term))))
@@ -178,7 +180,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
   "First-time setup for rustdoc."
   (interactive)
   (rustdoc--install-resources)
-  (message "Setup: converting the standard library")
+  (message "Setup is converting the standard library")
   (async-start-process
    "*rustdoc-std-conversion*"
    rustdoc-convert-prog
