@@ -133,6 +133,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
   "Create a rustdoc directory for the current project. Link with std."
+
   (make-directory (rustdoc-current-project-doc-destination) t)
     (let* ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
                             "emacs/rustdoc/std"))
@@ -144,6 +145,10 @@ This is useful if you want to search for the name of a struct, enum or trait."
 (defun rustdoc-convert-current-package ()
   "Convert the documentation for a project and its dependencies."
   (interactive)
+  (unless (file-directory-p rustdoc-save-location)
+    (rustdoc-setup)
+    (message "Running first time setup.")
+    (sleep-for 3))
   (message "Converting documentation for %s " rustdoc-current-project)
   (call-process "cargo" nil nil nil "makedocs")
   (let* ((docs-src (concat (file-name-as-directory rustdoc-current-project) "target/doc"))
