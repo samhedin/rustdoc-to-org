@@ -56,6 +56,7 @@
     (require 'xdg)
     (fset 'rustdoc--xdg-data-home 'xdg-data-home)))
 
+
 (defvar rustdoc-local-directory ".rustdoc"
   "Directory to search for converted org files.")
 
@@ -72,9 +73,12 @@
 (defvar rustdoc-source-repo (format "https://raw.githubusercontent.com/%s/rustdoc-to-org/master/"
                                     rustdoc-source-user))
 
-(defvar rustdoc-current-search-dir (concat (file-name-as-directory (rustdoc--xdg-data-home))
+(defvar rustdoc-current-project (concat (file-name-as-directory (rustdoc--xdg-data-home))
                                                 "emacs/rustdoc/std")
   "Location to search for documentation. Search std by default, then last open project.")
+
+(defvar rustdoc-active-modes '(rust-mode rustic-mode)
+  "Modes that rustdoc should update `rustdoc-current-project' in.")
 
 (defvar rustdoc-resources `((,rustdoc-convert-prog (:exec) ,(concat rustdoc-source-repo
                                                                     "convert.sh"))
@@ -116,13 +120,15 @@ This is useful if you want to search for the name of a struct, enum or trait."
                      (setq current-prefix-arg nil)
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
-    (unless (file-directory-p rustdoc-current-search-dir)
+    (unless (file-directory-p rustdoc-current-project)
       (rustdoc-create-project-dir))
-    (if (lsp-workspace-root) ; If we are in an lsp project, we set it as the current doc search directory. Otherwise, we use the last seen directory.
-        (setq rustdoc-current-search-dir
+    (if (and
+         (lsp-workspace-root)
+         (member major-mode rustdoc-active-modes)) ; If we are in an lsp rust project, we set it as the current doc search directory. Otherwise, we use the last seen directory.
+        (setq rustdoc-current-project
               (concat (file-name-as-directory (lsp-workspace-root))
                       rustdoc-local-directory)))
-    (helm-ag rustdoc-current-search-dir (concat regex search-term))))
+    (helm-ag rustdoc-current-project (concat regex search-term))))
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
@@ -186,7 +192,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
             (define-key map (kbd "C-#") 'rustdoc-search)
             map))
 
-(dolist (mode '(rust-mode-hook rustic-mode-hook org-mode))
+(dolist (mode '(rust-mode-hook rustic-mode-hook org-mode-hook))
   (add-hook mode 'rustdoc-mode))
 
 (provide 'rustdoc)
