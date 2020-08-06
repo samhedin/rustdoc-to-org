@@ -71,9 +71,9 @@ Header = function(el)
     end
 
     if contains_must_use then
-      return pandoc.List:new({pandoc.Header(3, methodname), pandoc.Plain(must_use_text:sub(1, -3))})
+      return pandoc.List:new({pandoc.Header(3, pandoc.List:new({pandoc.Code(methodname)})), pandoc.Plain(must_use_text:sub(1, -3))})
     end
-    return pandoc.Header(3, methodname)
+    return pandoc.Header(3, pandoc.List:new({ pandoc.Code(methodname)}))
   end
 
   return pandoc.Header(el.level - 1, el.content)
