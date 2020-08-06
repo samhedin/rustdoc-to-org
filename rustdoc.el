@@ -169,7 +169,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
 
 ;;;###autoload
 (defun rustdoc-setup ()
-  "First-time setup for rustdoc."
+  "Setup or update rustdoc filter and convert script. Convert std."
   (interactive)
   (rustdoc--install-resources)
   (message "Setup is converting the standard library")
