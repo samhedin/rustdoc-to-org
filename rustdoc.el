@@ -80,6 +80,8 @@
 (defvar rustdoc-active-modes '(rust-mode rustic-mode)
   "Modes that rustdoc should update `rustdoc-current-project' in.")
 
+(defvar rustdoc-save-location (concat (rustdoc--xdg-data-home) "/emacs/rustdoc"))
+
 (defvar rustdoc-resources `((,rustdoc-convert-prog (:exec) ,(concat rustdoc-source-repo
                                                                     "convert.sh"))
                             (,rustdoc-lua-filter () ,(concat rustdoc-source-repo
@@ -131,27 +133,23 @@ This is useful if you want to search for the name of a struct, enum or trait."
     (helm-ag rustdoc-current-project (concat regex search-term))))
 
 ;;;###autoload
-(defun rustdoc-create-project-dir ()
-  "Create a .rustdoc directory in the current project root folder. Link with std."
-(let* ((proj (lsp-workspace-root)))
-    (make-directory (concat (file-name-as-directory proj)
-                            rustdoc-local-directory)
+(defun rustdoc-create-project-dir (dir)
+  "Create a rustdoc directory for the current project. Link with std."
+  (message "creating dir %s" dir)
+    (make-directory dir
                     t)
     (let ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
                             "emacs/rustdoc/std"))
-          (link-name (concat (file-name-as-directory proj)
-                             (file-name-as-directory rustdoc-local-directory)
-                             "std")))
-      (make-symbolic-link link-tgt link-name t))))
+          (link-name (concat dir "/std")))
+      (make-symbolic-link link-tgt link-name t)))
 
 ;;;###autoload
 (defun rustdoc-convert-current-package ()
   "Convert the documentation for a project and its dependencies."
   (interactive)
-  (rustdoc-create-project-dir)
   (call-process "cargo" nil nil nil "makedocs")
-  (let* ((proj (lsp-workspace-root))
-         (docs-src (concat (file-name-as-directory proj) "target/doc"))
+  (let* ((projpath (lsp-workspace-root))
+         (docs-src (concat (file-name-as-directory projpath) "target/doc"))
          ;; FIXME: Currently, the converted files are stored inside the project.
          ;;        I want to store them elsewhere, as many projects could share
          ;;        the same docs. *However* that would have to be versioned, so
@@ -160,16 +158,19 @@ This is useful if you want to search for the name of a struct, enum or trait."
          ;;        then we'd have to review different parsing solutions.
          ;;
          ;;        For now, I think this is an ok solution.
-         (docs-dst (concat (file-name-as-directory proj)
-                           rustdoc-local-directory))
+         (docs-dst (concat rustdoc-save-location "/" (file-name-nondirectory (directory-file-name (file-name-directory (concat projpath "/"))))))
          (finish-func (lambda (p)
-                        (message (format "Finished converting docs for: %s" proj)))))
+                        (message (format "Finished converting docs for: %s" projpath)))))
+
+    (rustdoc-create-project-dir docs-dst)
     (async-start-process
      "*rustdoc-convert*"
      rustdoc-convert-prog
      finish-func
      docs-src
      docs-dst)))
+
+
 
 
 ;;;###autoload
