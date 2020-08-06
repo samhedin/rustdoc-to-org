@@ -35,11 +35,6 @@ Header = function(el)
   if el.classes:includes("fqn") and el.level == 1 then
     return pandoc.Header(1, el.content)
   end
-
-  -- if el.attr.identifier == "trait-implementations" then
-  --   return pandoc.Null
-  -- end
-
   if el.classes:includes("hidden") then
     return pandoc.Plain(el.content) -- We hide the headlines from search results by making them plain. Maybe the solution can be nicer, need to think about it.
     -- return pandoc.Header(4, el.content)
@@ -87,25 +82,11 @@ end,
 Div = function(el)
   if el.classes:includes("shortcuts") or el.classes:includes("sidebar-elems") or el.classes:includes("theme-picker") or el.classes:includes("infos") or el.classes:includes("search-container")  or el.classes:includes("sidebar-menu") or el.classes:includes("logo-container") or el.classes:includes("toggle-wrapper") then
     return pandoc.Null
-
   elseif el.classes:includes("variant") and el.classes:includes("small-section-header") and el.content[1] and tablelength(el.content[1].content) > 1 then
     return pandoc.List:new({pandoc.Header(2, el.content[1].content[2])})
-
   elseif (el.classes:includes("section") and el.classes:includes("content") or el.attr.identifier == "implementors-list") then
     return pandoc.Div(el.content)
-
-  elseif el.classes:includes("impl-items") then
-    local newcontent = {}
-    for i,v in ipairs(el.content) do
-      if v.t == "Header" then
-        table.insert(newcontent, pandoc.Plain(v.content))
-      else
-        table.insert(newcontent, v)
-      end
-    end
-    return pandoc.Div(newcontent)
   end
-
 end,
 
 Plain = function(el)
