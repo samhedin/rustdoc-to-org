@@ -132,6 +132,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
+  "Create a .rustdoc directory in the current project root folder. Link with std."
 (let* ((proj (lsp-workspace-root)))
     (make-directory (concat (file-name-as-directory proj)
                             rustdoc-local-directory)
@@ -145,7 +146,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
 
 ;;;###autoload
 (defun rustdoc-convert-current-package ()
-  "Convert the documentation for a project, and its dependencies."
+  "Convert the documentation for a project and its dependencies."
   (interactive)
   (rustdoc-create-project-dir)
   (let* ((proj (lsp-workspace-root))

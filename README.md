@@ -25,7 +25,7 @@ There are two alternatives to install the package. Please make an issue if eithe
 
 ## Usage
 
-* Run `M-x rustdoc-setup` to download some files rustdoc needs to convert rust documentation, and convert `std`.
+* Run `M-x rustdoc-setup` to download files that rustdoc needs to convert rust documentation, and also convert `std`.
 * You can now convert package-specific documentation with `M-x rustdoc-convert-current-package`
 * Search the org files with `rustdoc-search` (bound to `C-#` by default) if you are in `Rust mode`, `Rustic mode` or `Org mode`.
 
