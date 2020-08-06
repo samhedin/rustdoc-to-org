@@ -126,6 +126,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
       (rustdoc-create-project-dir))
     (helm-ag (rustdoc-current-project-doc-destination) (concat regex search-term))))
 
+;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
   "The location of the documentation for the last seen project."
   (concat rustdoc-save-location "/" (file-name-nondirectory (directory-file-name (file-name-directory (concat rustdoc-current-project "/"))))))
@@ -144,7 +145,6 @@ This is useful if you want to search for the name of a struct, enum or trait."
 (defun rustdoc-convert-current-package ()
   "Convert the documentation for a project and its dependencies."
   (interactive)
-
   (message "Converting documentation for %s " rustdoc-current-project)
   (call-process "cargo" nil nil nil "makedocs")
   (let* ((docs-src (concat (file-name-as-directory rustdoc-current-project) "target/doc"))
