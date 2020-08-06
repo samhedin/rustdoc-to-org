@@ -46,6 +46,16 @@
 (require 'url)
 (require 'lsp)
 
+
+(if (< emacs-major-version 27)
+    (defun rustdoc--xdg-data-home ()
+      (or (getenv "XDG_DATA_HOME")
+          (concat (file-name-as-directory (getenv "HOME"))
+                  ".local/share")))
+  (progn
+    (require 'xdg)
+    (fset 'rustdoc--xdg-data-home 'xdg-data-home)))
+
 (defvar rustdoc-local-directory ".rustdoc"
   "Directory to search for converted org files.")
 
@@ -61,6 +71,10 @@
 
 (defvar rustdoc-source-repo (format "https://raw.githubusercontent.com/%s/rustdoc-to-org/master/"
                                     rustdoc-source-user))
+
+(defvar rustdoc-current-search-dir (concat (file-name-as-directory (rustdoc--xdg-data-home))
+                                                "emacs/rustdoc/std")
+  "Location to search for documentation. Search std by default, then last open project.")
 
 (defvar rustdoc-resources `((,rustdoc-convert-prog (:exec) ,(concat rustdoc-source-repo
                                                                     "convert.sh"))
@@ -97,26 +111,18 @@ This is useful if you want to search for the name of a struct, enum or trait."
                       nil
                       (thing-at-point 'symbol))))
   (let ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
-        (search-directory (concat (file-name-as-directory (lsp-workspace-root))
-                                  rustdoc-local-directory))
         (regex (if current-prefix-arg
                    (progn
                      (setq current-prefix-arg nil)
                      "^\\* [^-]\*")
                  "\\* [^-]\*")))
-    (unless (file-directory-p search-directory)
+    (unless (file-directory-p rustdoc-current-search-dir)
       (rustdoc-create-project-dir))
-    (helm-ag search-directory (concat regex search-term))))
-
-
-(if (< emacs-major-version 27)
-    (defun rustdoc--xdg-data-home ()
-      (or (getenv "XDG_DATA_HOME")
-          (concat (file-name-as-directory (getenv "HOME"))
-                  ".local/share")))
-  (progn
-    (require 'xdg)
-    (fset 'rustdoc--xdg-data-home 'xdg-data-home)))
+    (if (lsp-workspace-root) ; If we are in an lsp project, we set it as the current doc search directory. Otherwise, we use the last seen directory.
+        (setq rustdoc-current-search-dir
+              (concat (file-name-as-directory (lsp-workspace-root))
+                      rustdoc-local-directory)))
+    (helm-ag rustdoc-current-search-dir (concat regex search-term))))
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
@@ -180,7 +186,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
             (define-key map (kbd "C-#") 'rustdoc-search)
             map))
 
-(dolist (mode '(rust-mode-hook rustic-mode-hook))
+(dolist (mode '(rust-mode-hook rustic-mode-hook org-mode))
   (add-hook mode 'rustdoc-mode))
 
 (provide 'rustdoc)
