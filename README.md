@@ -30,7 +30,6 @@ There are two alternatives to install the package. Please make an issue if eithe
 * Search the org files with `rustdoc-search` (bound to `C-#` by default) if you are in `Rust mode`, `Rustic mode` or `Org mode`.
 
 We are waiting for an update to Pandoc that will make the generated documents prettier, it should be available soon https://github.com/jgm/pandoc/issues/6554
-Some sections, such as trait implementations, are not searchable. This is because there are so many, often with the same name, that they completely take over the search results. They are still available inside the document itself, of course!
 
 ## TODO
 
