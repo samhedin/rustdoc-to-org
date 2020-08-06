@@ -95,7 +95,7 @@ Plain = function(el)
       return pandoc.Null
     end
 
-    if v.t == "Span" and (v.classes:includes("loading-content") or tablelength(v.content) == 0) and tablelength(el.content) == 1 then --bug here!
+    if v.t == "Span" and (v.classes:includes("loading-content") or tablelength(v.content) == 0) and tablelength(el.content) == 1 then --bug here! 1 week later: Why did I not explain what the bug was? I have no idea now.
       return pandoc.Null
     end
 
