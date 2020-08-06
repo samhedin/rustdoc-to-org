@@ -29,6 +29,8 @@ There are two alternatives to install the package. Please make an issue if eithe
 * You can now convert package-specific documentation with `M-x rustdoc-convert-current-package`
 * Search the org files with `rustdoc-search` (bound to `C-#` by default) if you are in `Rust mode`, `Rustic mode` or `Org mode`.
 
+We are waiting for an update to Pandoc that will make the generated documents prettier, it should be available soon https://github.com/jgm/pandoc/issues/6554
+
 ## TODO
 
 * Figure out a way to get links working. All links point to .html files, they should be updated to point to .org files.
