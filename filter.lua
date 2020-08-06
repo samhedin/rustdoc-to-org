@@ -98,7 +98,7 @@ Div = function(el)
     local newcontent = {}
     for i,v in ipairs(el.content) do
       if v.t == "Header" then
-        table.insert(newcontent, pandoc.Plain(v.content))
+        table.insert(newcontent, pandoc.Plain(pandoc.List:new({ pandoc.Code(v.content[1].text) })))
       else
         table.insert(newcontent, v)
       end
