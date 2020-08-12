@@ -112,9 +112,7 @@ like structs and enums."
                       nil
                       (rustdoc--thing-at-point))))
   (let ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
-        (regex (if (string-match "[A-Z]" search-term)
-                 "^\\* [^-]\*"
-                 "\\* [^-]\*")))
+        (regex "^\\*+ [^-]\*"))
     (unless (file-directory-p rustdoc-save-location)
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
