@@ -44,8 +44,6 @@
 (require 'helm-ag)
 (require 'url)
 (require 'lsp)
-(require 'cl-lib)
-
 
 (if (< emacs-major-version 27)
     (defun rustdoc--xdg-data-home ()
@@ -103,9 +101,7 @@ All projects and std by default, otherwise last open project and std.")
 (defun rustdoc-search (search-term)
   "Search the rust documentation for SEARCH-TERM.
 Only searches in headers (structs, functions, traits, enums, etc)
-to limit the number of results.
-If the SEARCH-TERM contains an uppercase character, search for level 1 headers,
-like structs and enums."
+to limit the number of results. "
   (interactive (list (read-string
                       (format "search term, default (%s): " (rustdoc--thing-at-point))
                       nil
@@ -119,8 +115,9 @@ like structs and enums."
       (sleep-for 3))
     (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
-    (message "searching for %s " (concat regex search-term))
+    (message "searching for %s " search-term)
     (helm-ag (rustdoc-current-project-doc-destination) (concat regex search-term))))
+
 
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
@@ -149,15 +146,11 @@ like structs and enums."
   (message "Converting documentation for %s " rustdoc-current-project)
   (call-process "cargo" nil nil nil "makedocs")
   (let* ((docs-src (concat (file-name-as-directory rustdoc-current-project) "target/doc"))
-         ;; FIXME: Currently, the converted files are stored inside the project.
-         ;;        I want to store them elsewhere, as many projects could share
-         ;;        the same docs. *However* that would have to be versioned, so
+         ;; FIXME: Many projects could share the same docs.
+         ;;        *However* that would have to be versioned, so
          ;;        we'll have to figure out a way to coerce `<crate>-<version>`
          ;;        strings out of cargo, or just parse the Cargo.toml file, but
          ;;        then we'd have to review different parsing solutions.
-         ;;
-         ;;        For now, I think this is an ok solution.
-         ;; Update: Converted files are now stored in a directory next to where std is stored.
          (finish-func (lambda (p)
                         (message (format "Finished converting docs for %s" rustdoc-current-project)))))
 

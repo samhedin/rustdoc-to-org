@@ -44,13 +44,13 @@ Header = function(el)
   if el.classes:includes("small-section-header") then
     return pandoc.Header(1, pandoc.List:new({el.content[1]}))
   end
-  if el.classes:includes("impl") then
+  if el.classes:includes("impl") and el.content then
     return pandoc.Header(2, pandoc.List:new{el.content[1]})
   end
-  if el.classes:includes("fqn") and el.level == 1 then
+  if el.classes:includes("fqn") and el.level == 1 and el.content and el.content[1].content then
     crate = ""
     for i,v in ipairs(el.content[1].content) do
-      if v.content then
+      if v.content and v.content[1].text then
         crate = crate .. v.content[1].text .. "::"
       end
     end
