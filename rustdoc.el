@@ -44,6 +44,7 @@
 (require 'helm-ag)
 (require 'url)
 (require 'lsp)
+(require 'cl-lib)
 
 
 (if (< emacs-major-version 27)
@@ -184,6 +185,16 @@ This is useful if you want to search for the name of a struct, enum or trait."
    (lambda (p) (message "Finished converting docs for std"))
    "std"))
 
+(defun retrieve-info-at-point ()
+  (interactive)
+  (let* ((lsp-info (nth 1 (split-string (gethash "value"  (-some->> (lsp--text-document-position-params)
+                                                   (lsp--make-request "textDocument/hover")
+                                                   (lsp--send-request)
+                                                   (lsp:hover-contents))) "\n")))
+         (full-symbol-name (if (string-prefix-p "core" lsp-info)
+                               (concat "std" (seq-drop lsp-info 4))
+                             lsp-info)))
+    (print full-symbol-name)))
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
