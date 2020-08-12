@@ -38,4 +38,4 @@ constant:
 
 overwrite_filter:
 	rm ~/.local/bin/rustdoc-filter.lua
-	mv ./filter.lua ~/.local/bin/rustdoc-filter.lua
+	cp ./filter.lua ~/.local/bin/rustdoc-filter.lua
