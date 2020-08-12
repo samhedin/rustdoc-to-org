@@ -104,10 +104,8 @@ All projects and std by default, otherwise last open project and std.")
   "Search the rust documentation for SEARCH-TERM.
 Only searches in headers (structs, functions, traits, enums, etc)
 to limit the number of results.
-
-Provide a raw prefix arg to only search for Level 1 headers,
-this limits the number of search results even further.
-This is useful if you want to search for the name of a struct, enum or trait."
+If the SEARCH-TERM contains an uppercase character, search for level 1 headers,
+like structs and enums."
   (interactive (list (read-string
                       (format "search term, default (%s): " (rustdoc--thing-at-point))
                       nil
@@ -119,7 +117,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
                  "\\* [^-]\*")))
     (unless (file-directory-p rustdoc-save-location)
       (rustdoc-setup)
-      (message "Running first time setup. Please re run your search once conversion has completed.")
+      (message "Running first time setup. Please re-run your search once conversion has completed.")
       (sleep-for 3))
     (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
