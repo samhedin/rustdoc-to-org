@@ -114,10 +114,8 @@ This is useful if you want to search for the name of a struct, enum or trait."
                       nil
                       (rustdoc--thing-at-point))))
   (let ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
-        (regex (if current-prefix-arg
-                   (progn
-                     (setq current-prefix-arg nil)
-                     "^\\* [^-]\*")
+        (regex (if (string-match "[A-Z]" search-term)
+                 "^\\* [^-]\*"
                  "\\* [^-]\*")))
     (unless (file-directory-p rustdoc-save-location)
       (rustdoc-setup)
