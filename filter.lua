@@ -4,13 +4,7 @@ function tablelength(T)
   for _ in pairs(T) do count = count + 1 end
   return count
 end
-function table.shallow_copy(t)
-  local t2 = {}
-  for k,v in pairs(t) do
-    t2[k] = v
-  end
-  return t2
-end
+
 function dump(o)
   if type(o) == 'table' then
     local s = '{ '
@@ -56,12 +50,10 @@ Header = function(el)
     crate = ""
     for i,v in ipairs(el.content[1].content) do
       if v.content then
-        print(dump(v.content[1].text))
         crate = crate .. v.content[1].text .. "::"
       end
     end
 
-    print(crate)
     return pandoc.Header(1, el.content)
   end
   if el.classes:includes("hidden") then
@@ -72,11 +64,19 @@ Header = function(el)
 
   if el.classes:includes("method") then
     local code = el.content[1]
-    local methodname = ""
     local must_use_text = ""
     local contains_must_use = false
     local in_methodname = true
     local in_must_use_text = false
+
+    local is_pub = ""
+    if string.find(code.text, "pub") then
+      code.text = code.text:gsub("pub", "")
+      is_pub = "pub"
+    end
+    code.text = code.text:gsub("fn", "")
+
+    local methodname = is_pub .. " fn " .. crate
 
     if string.match(code.text, "must_use") then
       in_methodname = false
