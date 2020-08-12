@@ -104,6 +104,7 @@ All projects and std by default, otherwise last open project and std.")
   "Search the rust documentation for SEARCH-TERM.
 Only searches in headers (structs, functions, traits, enums, etc)
 to limit the number of results.
+
 Provide a raw prefix arg to only search for Level 1 headers,
 this limits the number of search results even further.
 This is useful if you want to search for the name of a struct, enum or trait."
@@ -191,10 +192,11 @@ This is useful if you want to search for the name of a struct, enum or trait."
                                                    (lsp--make-request "textDocument/hover")
                                                    (lsp--send-request)
                                                    (lsp:hover-contents))) "\n")))
-         (full-symbol-name (if (string-prefix-p "core" lsp-info)
-                               (concat "std" (seq-drop lsp-info 4))
-                             lsp-info)))
+         (full-symbol-name (concat (if (string-prefix-p "core" lsp-info) ; Functions in core are documented under std.
+                                       (concat "std" (seq-drop lsp-info 4))
+                                     lsp-info) "::" (thing-at-point 'symbol t))))
     (print full-symbol-name)))
+
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
