@@ -69,21 +69,22 @@ Header = function(el)
     local in_methodname = true
     local in_must_use_text = false
 
-    local is_pub = ""
+    local maybepub = ""
     if string.find(code.text, "pub") then
       code.text = code.text:gsub("pub", "")
-      is_pub = "pub"
+      maybepub = "pub"
     end
     code.text = code.text:gsub("fn", "")
 
-    local methodname = is_pub .. " fn " .. crate
+    local methodname = maybepub .. " fn " .. crate
 
     if string.match(code.text, "must_use") then
       in_methodname = false
       contains_must_use = true
     end
 
-    for i = 1, #code.text do
+    local i = 1
+     while i < #code.text do
       local c = code.text:sub(i, i);
 
       if in_methodname then
@@ -97,6 +98,7 @@ Header = function(el)
       elseif c == "\"" then
         in_must_use_text = true
       end
+      i = i + 1
     end
 
     if contains_must_use then
