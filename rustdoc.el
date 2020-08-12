@@ -109,10 +109,10 @@ Provide a raw prefix arg to only search for Level 1 headers,
 this limits the number of search results even further.
 This is useful if you want to search for the name of a struct, enum or trait."
   (interactive (list (read-string
-                      (format "search term, default (%s): " (thing-at-point 'symbol))
+                      (format "search term, default (%s): " (rustdoc--thing-at-point))
                       nil
                       nil
-                      (thing-at-point 'symbol))))
+                      (rustdoc--thing-at-point))))
   (let ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
         (regex (if current-prefix-arg
                    (progn
@@ -125,6 +125,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
       (sleep-for 3))
     (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
+    (message "searching for %s " (concat regex search-term))
     (helm-ag (rustdoc-current-project-doc-destination) (concat regex search-term))))
 
 ;;;###autoload
@@ -187,16 +188,20 @@ This is useful if you want to search for the name of a struct, enum or trait."
    "std"))
 
 ;;;###autoload
-(defun rustdoc--retrieve-info-at-point ()
+(defun rustdoc--thing-at-point ()
+  (interactive)
   (let* ((lsp-info (nth 1 (split-string (gethash "value"  (-some->> (lsp--text-document-position-params)
                                                    (lsp--make-request "textDocument/hover")
                                                    (lsp--send-request)
-                                                   (lsp:hover-contents))) "\n")))
-         (full-symbol-name (concat (if (string-prefix-p "core" lsp-info) ; Functions in core are documented under std.
-                                       (concat "std" (seq-drop lsp-info 4))
-                                     lsp-info) "::" (thing-at-point 'symbol t))))
+                                                   (lsp:hover-contents))))))
+         (full-symbol-name (concat
+                            (cond
+                             ((string-prefix-p "core" lsp-info) (concat "std" (seq-drop lsp-info 4)))
+                             ((string-prefix-p "alloc" lsp-info) (concat "std" (seq-drop lsp-info 5)))
+                             (t lsp-info))
+                            "::" (thing-at-point 'symbol t))))
+    (print full-symbol-name)
     full-symbol-name))
-
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
