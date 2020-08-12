@@ -186,8 +186,8 @@ This is useful if you want to search for the name of a struct, enum or trait."
    (lambda (p) (message "Finished converting docs for std"))
    "std"))
 
-(defun retrieve-info-at-point ()
-  (interactive)
+;;;###autoload
+(defun rustdoc--retrieve-info-at-point ()
   (let* ((lsp-info (nth 1 (split-string (gethash "value"  (-some->> (lsp--text-document-position-params)
                                                    (lsp--make-request "textDocument/hover")
                                                    (lsp--send-request)
@@ -195,7 +195,7 @@ This is useful if you want to search for the name of a struct, enum or trait."
          (full-symbol-name (concat (if (string-prefix-p "core" lsp-info) ; Functions in core are documented under std.
                                        (concat "std" (seq-drop lsp-info 4))
                                      lsp-info) "::" (thing-at-point 'symbol t))))
-    (print full-symbol-name)))
+    full-symbol-name))
 
 
 ;;;###autoload
