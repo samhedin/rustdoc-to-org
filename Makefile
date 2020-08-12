@@ -35,3 +35,7 @@ constant:
 	cd debug_files ;\
 	pandoc constant.ARCH.html --lua-filter ../filter.lua -t native -o filterednative ;\
 	pandoc -f native filterednative -o constant.arch.org
+
+overwrite_filter:
+	rm ~/.local/bin/rustdoc-filter.lua
+	mv ./filter.lua ~/.local/bin/rustdoc-filter.lua
