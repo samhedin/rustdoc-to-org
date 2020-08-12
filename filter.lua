@@ -4,6 +4,26 @@ function tablelength(T)
   for _ in pairs(T) do count = count + 1 end
   return count
 end
+function table.shallow_copy(t)
+  local t2 = {}
+  for k,v in pairs(t) do
+    t2[k] = v
+  end
+  return t2
+end
+function dump(o)
+  if type(o) == 'table' then
+    local s = '{ '
+    for k,v in pairs(o) do
+      if type(k) ~= 'number' then k = '"'..k..'"' end
+      s = s .. '['..k..'] = ' .. dump(v) .. ','
+    end
+    return s .. '} '
+  else
+    return tostring(o)
+  end
+end
+
 
 Span = function(el)
   if el.classes:includes("since") or el.classes:includes("inner") or tablelength(el.content) == 1 then
@@ -33,6 +53,15 @@ Header = function(el)
     return pandoc.Header(2, pandoc.List:new{el.content[1]})
   end
   if el.classes:includes("fqn") and el.level == 1 then
+    crate = ""
+    for i,v in ipairs(el.content[1].content) do
+      if v.content then
+        print(dump(v.content[1].text))
+        crate = crate .. v.content[1].text .. "::"
+      end
+    end
+
+    print(crate)
     return pandoc.Header(1, el.content)
   end
   if el.classes:includes("hidden") then
@@ -73,7 +102,7 @@ Header = function(el)
     if contains_must_use then
       return pandoc.List:new({pandoc.Header(3, pandoc.List:new({pandoc.Code(methodname)})), pandoc.Plain(must_use_text:sub(1, -3))})
     end
-    return pandoc.Header(3, pandoc.List:new({ pandoc.Code(methodname)}))
+    return pandoc.Header(3, pandoc.List:new({pandoc.Code(methodname)}))
   end
 
   return pandoc.Header(el.level - 1, el.content)
