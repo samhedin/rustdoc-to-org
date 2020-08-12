@@ -84,7 +84,7 @@ Header = function(el)
     end
 
     local i = 1
-     while i < #code.text do
+     while i <= #code.text do
       local c = code.text:sub(i, i);
 
       if in_methodname then
