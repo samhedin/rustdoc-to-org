@@ -1,4 +1,5 @@
 -- Filter to convert rustdoc to org mode
+-- This code is a mess, I will fix it whenever I get better at Lua.
 function tablelength(T)
   local count = 0
   for _ in pairs(T) do count = count + 1 end
@@ -83,8 +84,15 @@ Header = function(el)
       contains_must_use = true
     end
 
-    local i = 1
+    local beginning = true
+    local i = 0
      while i <= #code.text do
+
+      i = i + 1
+      if in_methodname and (not contains_must_use) and beginning then
+        i = i + 2
+        beginning = false
+      end
       local c = code.text:sub(i, i);
 
       if in_methodname then
@@ -95,10 +103,10 @@ Header = function(el)
 
       if c == "]" then
         in_methodname = true
+        i = i + 2
       elseif c == "\"" then
         in_must_use_text = true
       end
-      i = i + 1
     end
 
     if contains_must_use then
