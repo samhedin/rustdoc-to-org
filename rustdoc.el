@@ -194,7 +194,6 @@ like structs and enums."
                              ((string-prefix-p "alloc" lsp-info) (concat "std" (seq-drop lsp-info 5)))
                              (t lsp-info))
                             "::" (thing-at-point 'symbol t))))
-    (print full-symbol-name)
     full-symbol-name))
 
 ;;;###autoload
