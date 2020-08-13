@@ -122,7 +122,9 @@ to limit the number of results. "
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
   "The location of the documentation for the last seen project."
-  (concat rustdoc-save-location "/" (file-name-nondirectory (directory-file-name (file-name-directory (concat rustdoc-current-project "/"))))))
+  (if rustdoc-current-project
+      (concat rustdoc-save-location "/" (file-name-nondirectory (directory-file-name (file-name-directory (concat rustdoc-current-project "/")))))
+    rustdoc-save-location))
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
