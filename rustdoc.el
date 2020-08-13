@@ -167,6 +167,7 @@ to limit the number of results. "
   (interactive)
   (rustdoc--install-resources)
   (message "Setup is converting the standard library")
+  (delete-directory (concat rustdoc-save-location "/std") t)
   (async-start-process
    "*rustdoc-std-conversion*"
    rustdoc-convert-prog
