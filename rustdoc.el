@@ -177,17 +177,18 @@ to limit the number of results. "
 ;;;###autoload
 (defun rustdoc--thing-at-point ()
   (interactive)
-  (let* ((lsp-info (nth 1 (split-string (gethash "value"  (-some->> (lsp--text-document-position-params)
-                                                   (lsp--make-request "textDocument/hover")
-                                                   (lsp--send-request)
-                                                   (lsp:hover-contents))))))
-         (full-symbol-name (concat
-                            (cond
-                             ((string-prefix-p "core" lsp-info) (concat "std" (seq-drop lsp-info 4)))
-                             ((string-prefix-p "alloc" lsp-info) (concat "std" (seq-drop lsp-info 5)))
-                             (t lsp-info))
-                            "::" (thing-at-point 'symbol t))))
-    full-symbol-name))
+  (when lsp-mode
+    (let* ((lsp-info (nth 1 (split-string (gethash "value"  (-some->> (lsp--text-document-position-params)
+                                                              (lsp--make-request "textDocument/hover")
+                                                              (lsp--send-request)
+                                                              (lsp:hover-contents))))))
+           (full-symbol-name (concat
+                              (cond
+                               ((string-prefix-p "core" lsp-info) (concat "std" (seq-drop lsp-info 4)))
+                               ((string-prefix-p "alloc" lsp-info) (concat "std" (seq-drop lsp-info 5)))
+                               (t lsp-info))
+                              "::" (thing-at-point 'symbol t))))
+      full-symbol-name)))
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
