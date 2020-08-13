@@ -108,16 +108,15 @@ to limit the number of results. "
                       nil
                       (rustdoc--thing-at-point))))
   (let ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
-        (regex "^\\*+ [^-]\*"))
+        (search-term (concat "^\\*+ [^-]\*" (seq-reduce (lambda (acc s)
+                                                    (concat acc ".*" s)) (split-string search-term " ") "")) )) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
     (unless (file-directory-p rustdoc-save-location)
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
       (sleep-for 3))
     (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
-    (message "searching for %s " search-term)
-    (helm-ag (rustdoc-current-project-doc-destination) (concat regex search-term))))
-
+    (helm-ag (rustdoc-current-project-doc-destination) search-term)))
 
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
