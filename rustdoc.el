@@ -41,8 +41,8 @@
 
 ;;; Code:
 
-(defvar helm-ag--actions '(("Return filename" . (lambda (c) (message "candidate %s" c)))))
-
+(defvar helm-ag--actions '(("Return filename" . (lambda (c) (message "candidate %s" c))))) ;; FIXME: This breaks helm-ag for everyone else. We should probably not do that,
+                                                                                           ;; but using setq did not work properly for some reason.
 (require 'helm-ag)
 (require 'url)
 (require 'lsp)
@@ -55,6 +55,7 @@
   (progn
     (require 'xdg)
     (fset 'rustdoc--xdg-data-home 'xdg-data-home)))
+
 
 (defvar rustdoc-lua-filter (concat (file-name-as-directory (getenv "HOME"))
                                    ".local/bin/rustdoc-filter.lua")
@@ -120,7 +121,6 @@ Level 1 headers are things like struct or enum names."
                                                  (concat acc ".*" s)) (split-string search-term " ") "")))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
     (when lsp-mode
       (setq rustdoc-current-project (lsp-workspace-root)))
-    (setq helm-ag--actions (helm-make-actions "Return filename" #'helm-ag--action-return-filename))
     (unless (file-directory-p rustdoc-save-location)
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
