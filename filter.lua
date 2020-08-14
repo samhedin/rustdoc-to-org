@@ -54,7 +54,9 @@ Header = function(el)
         crate = crate .. v.content[1].text .. "::"
       end
     end
-
+    file = io.open("/home/sam/.local/share/emacs/rustdoc/rustdoc-index.txt", "a")
+    file:write(crate .. "\n")
+    file:close()
     return pandoc.Header(1, el.content)
   end
   if el.classes:includes("hidden") then
