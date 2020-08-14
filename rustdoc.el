@@ -71,9 +71,6 @@
   "Location to search for documentation.
 All projects and std by default, otherwise last open project and std.")
 
-(defvar rustdoc-active-modes '(rust-mode rustic-mode)
-  "Modes that rustdoc should update `rustdoc-current-project' in.")
-
 (defvar rustdoc-save-location (concat (rustdoc--xdg-data-home) "/emacs/rustdoc"))
 
 (defvar rustdoc-resources `((,rustdoc-convert-prog (:exec) ,(concat rustdoc-source-repo
