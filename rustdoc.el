@@ -98,14 +98,21 @@ All projects and std by default, otherwise last open project and std.")
 (defun rustdoc-search (search-term)
   "Search the rust documentation for SEARCH-TERM.
 Only searches in headers (structs, functions, traits, enums, etc)
-to limit the number of results. "
+to limit the number of results.
+To limit search results to only level 1 headers, add the prefix command `C-u'.
+Level 1 headers are things like struct or enum names."
   (interactive (list (read-string
                       (format "search term, default (%s): " (rustdoc--thing-at-point))
                       nil
                       nil
                       (rustdoc--thing-at-point))))
-  (let ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
-        (search-term (concat "^\\*+ [^-]\*" (seq-reduce (lambda (acc s)
+  (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
+         (regex (if current-prefix-arg
+                    (progn
+                      (setq current-prefix-arg nil)
+                      "^\\* [^-]\*")
+                  "\\* [^-]\*"))
+        (search-term (concat regex (seq-reduce (lambda (acc s)
                                                     (concat acc ".*" s)) (split-string search-term " ") "")) )) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
     (unless (file-directory-p rustdoc-save-location)
       (rustdoc-setup)

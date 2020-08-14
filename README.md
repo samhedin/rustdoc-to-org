@@ -28,6 +28,7 @@ There are two alternatives to install the package - with quelpa or manually. Ple
 * Run `M-x rustdoc-setup` to download files that rustdoc needs to convert rust documentation and also convert `std`.
 * You can now convert package-specific documentation with `M-x rustdoc-convert-current-package`
 * Search the org files with `rustdoc-search` (bound to `C-#` by default) if you are in `Rust mode`, `Rustic mode` or `Org mode`. If you hover over a symbol when you invoke the command, `rustdoc-search` will insert a default value.
+* Add the prefix command `C-u` to only search for level 1 headers like struct or enum names.
 
 ## Notes
 * We are waiting for an update to Pandoc that will make the generated documents prettier, it should be available soon https://github.com/jgm/pandoc/issues/6554
