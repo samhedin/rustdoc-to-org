@@ -108,6 +108,7 @@ to limit the number of results. "
                       nil
                       (rustdoc--thing-at-point))))
   (let ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
+        (root (lsp-workspace-root))
         (search-term (concat "^\\*+ [^-]\*" (seq-reduce (lambda (acc s)
                                                     (concat acc ".*" s)) (split-string search-term " ") "")) )) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
     (unless (file-directory-p rustdoc-save-location)
@@ -116,22 +117,29 @@ to limit the number of results. "
       (sleep-for 3))
     (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
+    (when root
+        (setq rustdoc-current-project root))
     (helm-ag (rustdoc-current-project-doc-destination) search-term)))
 
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
   "The location of the documentation for the last seen project."
-  (concat rustdoc-save-location "/" (file-name-nondirectory (directory-file-name (file-name-directory (concat rustdoc-current-project "/"))))))
+  (when rustdoc-current-project
+      (concat rustdoc-save-location "/" (file-name-nondirectory (directory-file-name (file-name-directory (concat rustdoc-current-project "/")))))))
+
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
   "Create a rustdoc directory for the current project. Link with std."
-
-  (make-directory (rustdoc-current-project-doc-destination) t)
     (let* ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
                             "emacs/rustdoc/std"))
-          (link-name (concat (rustdoc-current-project-doc-destination) "/std")))
-      (make-symbolic-link link-tgt link-name t)))
+           (link-name (concat (rustdoc-current-project-doc-destination) "/std"))
+           (current-doc-dest (rustdoc-current-project-doc-destination)))
+      (if current-doc-dest
+          (progn
+            (make-directory (rustdoc-current-project-doc-destination) t)
+            (make-symbolic-link link-tgt link-name t))
+        (message "Couldn't create project doc directory."))))
 
 
 ;;;###autoload
@@ -142,24 +150,27 @@ to limit the number of results. "
     (rustdoc-setup)
     (message "Running first time setup.")
     (sleep-for 3))
-  (message "Converting documentation for %s " rustdoc-current-project)
-  (call-process "cargo" nil nil nil "makedocs")
-  (let* ((docs-src (concat (file-name-as-directory rustdoc-current-project) "target/doc"))
-         ;; FIXME: Many projects could share the same docs.
-         ;;        *However* that would have to be versioned, so
-         ;;        we'll have to figure out a way to coerce `<crate>-<version>`
-         ;;        strings out of cargo, or just parse the Cargo.toml file, but
-         ;;        then we'd have to review different parsing solutions.
-         (finish-func (lambda (p)
-                        (message (format "Finished converting docs for %s" rustdoc-current-project)))))
+  (if rustdoc-current-project
+      (progn
+        (message "Converting documentation for %s " rustdoc-current-project)
+        (call-process "cargo" nil nil nil "makedocs")
+        (let* ((docs-src (concat (file-name-as-directory rustdoc-current-project) "target/doc"))
+               ;; FIXME: Many projects could share the same docs.
+               ;;        *However* that would have to be versioned, so
+               ;;        we'll have to figure out a way to coerce `<crate>-<version>`
+               ;;        strings out of cargo, or just parse the Cargo.toml file, but
+               ;;        then we'd have to review different parsing solutions.
+               (finish-func (lambda (p)
+                              (message (format "Finished converting docs for %s" rustdoc-current-project)))))
 
-    (rustdoc-create-project-dir)
-    (async-start-process
-     "*rustdoc-convert*"
-     rustdoc-convert-prog
-     finish-func
-     docs-src
-     (rustdoc-current-project-doc-destination))))
+          (rustdoc-create-project-dir)
+          (async-start-process
+           "*rustdoc-convert*"
+           rustdoc-convert-prog
+           finish-func
+           docs-src
+           (rustdoc-current-project-doc-destination))))
+    (message "Could not find project to convert. Visit a rust project first! If that does not work, run `rustdoc-search' once and then try again.")))
 
 ;;;###autoload
 (defun rustdoc-setup ()
