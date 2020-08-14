@@ -65,7 +65,7 @@
   "Save location for the rustdoc lua filter.")
 
 (defvar rustdoc-index-location (concat (file-name-as-directory (getenv "HOME"))
-                                       ".local/bin/rustdoc-index.txt"))
+                                       ".local/bin/rustdoc-index"))
 
 (defvar rustdoc-convert-prog (concat (file-name-as-directory (getenv "HOME"))
                                    ".local/bin/rustdoc-convert.sh")

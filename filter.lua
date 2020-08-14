@@ -54,8 +54,9 @@ Header = function(el)
         crate = crate .. v.content[1].text .. "::"
       end
     end
-    file = io.open("/home/sam/.local/bin/rustdoc-index.txt", "a")
-    file:write(crate:sub(1, -3) .. "\n") -- This is the first header name.
+    index = io.open("/home/sam/.local/bin/rustdoc-index", "a")
+    index:write(crate:sub(1, -3) .. "\n") -- This is the first header name.
+    lookup = io.open("/home/sam/.local/bin/rustdoc-paths", "a")
     return pandoc.Header(1, el.content)
   end
   if el.classes:includes("hidden") then
@@ -117,10 +118,10 @@ Header = function(el)
     end
 
     if contains_must_use then
-      file:write(methodname .. "\n")
+      index:write(methodname .. "\n")
       return pandoc.List:new({pandoc.Header(3, pandoc.List:new({pandoc.Code(methodname)})), pandoc.Plain(must_use_text:sub(1, -3))})
     end
-    file:write(methodname .. "\n")
+    index:write(methodname .. "\n")
     return pandoc.Header(3, pandoc.List:new({pandoc.Code(methodname)}))
   end
 
