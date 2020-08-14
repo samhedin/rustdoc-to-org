@@ -41,6 +41,21 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+(defun helm-make-actions (&rest args)
+  "Build an alist with (NAME . ACTION) elements with each pairs in ARGS.
+Where NAME is a string or a function returning a string or nil
+and ACTION a function.
+If NAME returns nil the pair is skipped.
+
+\(fn NAME ACTION ...)"
+  (cl-loop for (name fn) on args by #'cddr
+           when (functionp name)
+           do (setq name (funcall name))
+           when name
+           collect (cons name fn)))
+(defvar helm-ag--actions (helm-make-actions "Return filename" #'helm-ag--action-return-filename))
+
 (require 'helm-ag)
 (require 'url)
 (require 'lsp)
@@ -94,6 +109,10 @@ All projects and std by default, otherwise last open project and std.")
                                        (error (format "Could not retrieve %s" dst)))))))
       (x (error "Invalid resource spec: %s" x)))))
 
+
+(defun helm-ag--action-return-filename (candidate)
+  (message "candidate: %s" candidate))
+
 ;;;###autoload
 (defun rustdoc-search (search-term)
   "Search the rust documentation for SEARCH-TERM.
@@ -113,9 +132,10 @@ Level 1 headers are things like struct or enum names."
                       "^\\* [^-]\*")
                   "\\* [^-]\*"))
         (search-term (concat regex (seq-reduce (lambda (acc s)
-                                                    (concat acc ".*" s)) (split-string search-term " ") "")) )) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
+                                                 (concat acc ".*" s)) (split-string search-term " ") "")))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
     (when lsp-mode
       (setq rustdoc-current-project (lsp-workspace-root)))
+    (setq helm-ag--actions (helm-make-actions "Return filename" #'helm-ag--action-return-filename))
     (unless (file-directory-p rustdoc-save-location)
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
@@ -123,6 +143,7 @@ Level 1 headers are things like struct or enum names."
     (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
     (helm-ag (rustdoc-current-project-doc-destination) search-term)))
+
 
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
