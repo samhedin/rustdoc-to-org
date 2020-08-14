@@ -41,20 +41,7 @@
 
 ;;; Code:
 
-(require 'cl-lib)
-(defun helm-make-actions (&rest args)
-  "Build an alist with (NAME . ACTION) elements with each pairs in ARGS.
-Where NAME is a string or a function returning a string or nil
-and ACTION a function.
-If NAME returns nil the pair is skipped.
-
-\(fn NAME ACTION ...)"
-  (cl-loop for (name fn) on args by #'cddr
-           when (functionp name)
-           do (setq name (funcall name))
-           when name
-           collect (cons name fn)))
-(defvar helm-ag--actions (helm-make-actions "Return filename" #'helm-ag--action-return-filename))
+(defvar helm-ag--actions '(("Return filename" . (lambda (c) (message "candidate %s" c)))))
 
 (require 'helm-ag)
 (require 'url)
@@ -110,8 +97,6 @@ All projects and std by default, otherwise last open project and std.")
       (x (error "Invalid resource spec: %s" x)))))
 
 
-(defun helm-ag--action-return-filename (candidate)
-  (message "candidate: %s" candidate))
 
 ;;;###autoload
 (defun rustdoc-search (search-term)
