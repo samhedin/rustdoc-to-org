@@ -41,7 +41,11 @@
 
 ;;; Code:
 
-(defvar helm-ag--actions '(("Return filename" . (lambda (c) (message "candidate %s" c))))) ;; FIXME: This breaks helm-ag for everyone else. We should probably not do that,
+;; std/error/trait.Error.org:28:*** = fn std::error::Error::source(&self) -> Option<&(dyn Error + 'static)>=
+(defun line-hit (candidate)
+  (let ((line-in-index (nth 0 (split-string candidate ":"))))
+    (message "line: %s" line-in-index)))
+(defvar helm-ag--actions '(("Return filename" . (lambda (c) (line-hit c))))) ;; FIXME: This breaks helm-ag for everyone else. We should probably not do that,
                                                                                            ;; but using setq did not work properly for some reason.
 (require 'helm-ag)
 (require 'url)
@@ -56,10 +60,12 @@
     (require 'xdg)
     (fset 'rustdoc--xdg-data-home 'xdg-data-home)))
 
-
 (defvar rustdoc-lua-filter (concat (file-name-as-directory (getenv "HOME"))
                                    ".local/bin/rustdoc-filter.lua")
   "Save location for the rustdoc lua filter.")
+
+(defvar rustdoc-index-location (concat (file-name-as-directory (getenv "HOME"))
+                                       ".local/bin/rustdoc-index.txt"))
 
 (defvar rustdoc-convert-prog (concat (file-name-as-directory (getenv "HOME"))
                                    ".local/bin/rustdoc-convert.sh")
@@ -111,14 +117,13 @@ Level 1 headers are things like struct or enum names."
                       nil
                       nil
                       (rustdoc--thing-at-point))))
-  (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
+  (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number --pcre2")
          (regex (if current-prefix-arg
                     (progn
                       (setq current-prefix-arg nil)
-                      "^\\* [^-]\*")
-                  "\\* [^-]\*"))
-        (search-term (concat regex (seq-reduce (lambda (acc s)
-                                                 (concat acc ".*" s)) (split-string search-term " ") "")))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
+                      "^(?!.*fn).*")
+                  "fn.*"))
+        (search-term (concat regex search-term))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
     (when lsp-mode
       (setq rustdoc-current-project (lsp-workspace-root)))
     (unless (file-directory-p rustdoc-save-location)
@@ -127,8 +132,7 @@ Level 1 headers are things like struct or enum names."
       (sleep-for 3))
     (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
-    (helm-ag (rustdoc-current-project-doc-destination) search-term)))
-
+    (helm-do-ag nil (list rustdoc-index-location) search-term)))
 
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
@@ -184,7 +188,7 @@ Level 1 headers are things like struct or enum names."
 (defun rustdoc-setup ()
   "Setup or update rustdoc filter and convert script. Convert std."
   (interactive)
-  (rustdoc--install-resources)
+  ;(rustdoc--install-resources)
   (message "Setup is converting the standard library")
   (delete-directory (concat rustdoc-save-location "/std") t)
   (async-start-process

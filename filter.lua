@@ -54,7 +54,7 @@ Header = function(el)
         crate = crate .. v.content[1].text .. "::"
       end
     end
-    file = io.open("/home/sam/.local/share/emacs/rustdoc/rustdoc-index.txt", "a")
+    file = io.open("/home/sam/.local/bin/rustdoc-index.txt", "a")
     file:write(crate:sub(1, -3) .. "\n") -- This is the first header name.
     return pandoc.Header(1, el.content)
   end
