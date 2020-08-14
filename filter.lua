@@ -56,7 +56,6 @@ Header = function(el)
     end
     file = io.open("/home/sam/.local/share/emacs/rustdoc/rustdoc-index.txt", "a")
     file:write(crate:sub(1, -3) .. "\n") -- This is the first header name.
-    file:close()
     return pandoc.Header(1, el.content)
   end
   if el.classes:includes("hidden") then
@@ -118,8 +117,10 @@ Header = function(el)
     end
 
     if contains_must_use then
+      file:write(methodname .. "\n")
       return pandoc.List:new({pandoc.Header(3, pandoc.List:new({pandoc.Code(methodname)})), pandoc.Plain(must_use_text:sub(1, -3))})
     end
+    file:write(methodname .. "\n")
     return pandoc.Header(3, pandoc.List:new({pandoc.Code(methodname)}))
   end
 
