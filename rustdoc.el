@@ -108,7 +108,6 @@ to limit the number of results. "
                       nil
                       (rustdoc--thing-at-point))))
   (let ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
-        (root (lsp-workspace-root))
         (search-term (concat "^\\*+ [^-]\*" (seq-reduce (lambda (acc s)
                                                     (concat acc ".*" s)) (split-string search-term " ") "")) )) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
     (unless (file-directory-p rustdoc-save-location)
@@ -117,8 +116,6 @@ to limit the number of results. "
       (sleep-for 3))
     (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
-    (when root
-        (setq rustdoc-current-project root))
     (helm-ag (rustdoc-current-project-doc-destination) search-term)))
 
 ;;;###autoload
@@ -170,7 +167,7 @@ to limit the number of results. "
            finish-func
            docs-src
            (rustdoc-current-project-doc-destination))))
-    (message "Could not find project to convert. Visit a rust project first! If that does not work, run `rustdoc-search' once and then try again.")))
+    (message "Could not find project to convert. Visit a rust project first!")))
 
 ;;;###autoload
 (defun rustdoc-setup ()
