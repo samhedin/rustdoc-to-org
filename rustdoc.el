@@ -114,6 +114,8 @@ Level 1 headers are things like struct or enum names."
                   "\\* [^-]\*"))
         (search-term (concat regex (seq-reduce (lambda (acc s)
                                                     (concat acc ".*" s)) (split-string search-term " ") "")) )) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
+    (when lsp-mode
+      (setq rustdoc-current-project (lsp-workspace-root)))
     (unless (file-directory-p rustdoc-save-location)
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
@@ -125,8 +127,7 @@ Level 1 headers are things like struct or enum names."
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
   "The location of the documentation for the last seen project."
-  (when rustdoc-current-project
-      (concat rustdoc-save-location "/" (file-name-nondirectory (directory-file-name (file-name-directory (concat rustdoc-current-project "/")))))))
+    (concat rustdoc-save-location "/" (file-name-nondirectory (directory-file-name (file-name-directory (concat rustdoc-current-project "/"))))))
 
 
 ;;;###autoload
