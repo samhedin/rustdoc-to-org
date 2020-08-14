@@ -107,6 +107,7 @@ Level 1 headers are things like struct or enum names."
                       nil
                       (rustdoc--thing-at-point))))
   (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
+         (helm-ag-fuzzy-match t)
          (regex (if current-prefix-arg
                     (progn
                       (setq current-prefix-arg nil)
