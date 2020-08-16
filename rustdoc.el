@@ -125,7 +125,7 @@ Level 1 headers are things like struct or enum names."
                     (progn
                       (setq current-prefix-arg nil) ; If this is not done, helm-ag will pick up the prefix arg too and do funny business.
                       "^\\* [^-(<]*")
-                  "^(?!.*impl)^\\*+[^-(<]*"))
+                  "^(?!.*impl)^\\*+[^-(<]*")) ; Do not match if it's an impl, type of an argument, return type from a function.
          (regexed-search-term (concat regex 
                                       (seq-reduce (lambda (acc s)
                                                     (concat acc "[^-(<]*" s)) (split-string search-term " ") "")))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
