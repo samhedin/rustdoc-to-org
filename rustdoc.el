@@ -139,8 +139,7 @@ Level 1 headers are things like struct or enum names."
     (helm-ag search-dir regexed-search-term)))
 
 (defun update-current-project ()
-  (when (and lsp-mode (or (bound-and-true-p rust-mode)
-                          (bound-and-true-p rustic-mode)))
+  (when (and lsp-mode (derived-mode-p 'rust-mode 'rustic-mode))
     (setq rustdoc-current-project (lsp-workspace-root))))
 
 (defun rustdoc--deepest-dir (path)
