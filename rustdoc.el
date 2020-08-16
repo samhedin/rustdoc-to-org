@@ -144,12 +144,9 @@ This finds the deepest existing directory in PATH and returns it.
 In some cases we can infer parts of the filepath from the crate name.
 E.g std::option::Option is in the folder std/option. If we infer a path and it exists in the filesystem, we run the search in there instead.
 Some filepaths can not be inferred properly, seemingly because of https://github.com/rust-lang/rust/issues/21934"
-
-  (if (file-directory-p (or path (rustdoc-current-project-doc-destination)))
-      (progn
-        (message "deepest dir: %s" path)
-        path)
-    (rustdoc--find-deepest-dir (f-slash (f-dirname path)))))
+      (if (and (file-exists-p path) (file-directory-p path) (not (f-empty-p path)))
+        path
+        (rustdoc--find-deepest-dir (f-slash (f-dirname path)))))
 
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
