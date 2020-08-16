@@ -103,9 +103,6 @@ All projects and std by default, otherwise last open project and std.")
                     (error (format "Could not retrieve %s" dst)))))))
       (x (error "Invalid resource spec: %s" x)))))
 
-;; 1. If the search term contains `unknown', remove it.
-;; 2. Map hover details to folder.
-
 ;;;###autoload
 (defun rustdoc-search (search-term)
   "Search the rust documentation for SEARCH-TERM.
@@ -147,7 +144,7 @@ Level 1 headers are things like struct or enum names."
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
       (sleep-for 3))
-    ;; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default binding that only contains the symlink to std.
+    ;; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default directory that only contains a symlink to std.
     (unless (file-directory-p (rustdoc--project-doc-dest))
       (rustdoc-create-project-dir))
     (helm-ag search-dir regexed-search-term)))
