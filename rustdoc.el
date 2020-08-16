@@ -112,7 +112,7 @@ Level 1 headers are things like struct or enum names."
             nil
             (alist-get 'short-name thing-at-point)))))
   ; These helm-ag settings are to make it work properly with ripgrep.
-  (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
+  (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number --pcre2")
          (helm-ag-fuzzy-match t)
          (helm-ag-success-exit-status '(0 2))
          (thing-at-point (rustdoc--thing-at-point))
@@ -125,8 +125,9 @@ Level 1 headers are things like struct or enum names."
                     (progn
                       (setq current-prefix-arg nil) ; If this is not done, helm-ag will pick up the prefix arg too and do funny business.
                       "^\\* [^-(<]*")
-                  "^\\*+ [^-(<]*"))
-        (regexed-search-term (concat regex (seq-reduce (lambda (acc s)
+                  "^(?!.*impl)^\\*+[^-(<]*"))
+         (regexed-search-term (concat regex 
+                                      (seq-reduce (lambda (acc s)
                                                     (concat acc "[^-(<]*" s)) (split-string search-term " ") "")))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
     (rustdoc--update-current-project)
     (unless (file-directory-p rustdoc-save-loc)
