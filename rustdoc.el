@@ -104,21 +104,25 @@ Only searches in headers (structs, functions, traits, enums, etc)
 to limit the number of results.
 To limit search results to only level 1 headers, add the prefix command `C-u'.
 Level 1 headers are things like struct or enum names."
-  (interactive (list (read-string
-                      (format "search term, default (%s): " (alist-get 'name (rustdoc--thing-at-point)))
-                      nil
-                      nil
-                      (alist-get 'name (rustdoc--thing-at-point)))))
+  (interactive
+   (let ((thing-at-point (rustdoc--thing-at-point)))
+     (list (read-string
+            (format "search term, default (%s): " (alist-get 'name thing-at-point))
+            nil
+            nil
+            (alist-get 'name thing-at-point)))))
+  ; These are just general settings that should be used when making helm-ag work with ripgrep.
   (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
          (helm-ag-fuzzy-match t)
          (helm-ag-success-exit-status '(0 2))
          (name-and-path (rustdoc--thing-at-point))
          (name (alist-get 'name name-and-path))
          (current-doc-dest (rustdoc-current-project-doc-destination))
-         (crate-subpath (concat current-doc-dest "/" (alist-get 'crate-subpath name-and-path)))
+         (crate-subpath (concat current-doc-dest "/" (alist-get 'path name-and-path)))
+         ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only 1 * at the beginning of the line.
          (regex (if current-prefix-arg
                     (progn
-                      (setq current-prefix-arg nil)
+                      (setq current-prefix-arg nil) ; If this is not done, helm-ag will pick up the prefix arg too and do funny business.
                       "^\\* [^-]\*")
                   "\\* [^-]\*"))
         (search-term (concat regex (seq-reduce (lambda (acc s)
@@ -131,9 +135,10 @@ Level 1 headers are things like struct or enum names."
       (sleep-for 3))
     (unless (file-directory-p current-doc-dest)
       (rustdoc-create-project-dir))
+    (message "crate path: %s" crate-subpath)
     (if (file-directory-p crate-subpath) ; In some cases we can infer parts of the filepath from the crate name.
                                          ; E.g std::option::Option is in the folder std/option. If we infer a path and it exists in the filesystem, we run the search in there instead.
-                                        ; Some filepaths can not be inferred properly, seemingly because of https://github.com/rust-lang/rust/issues/21934
+                                         ; Some filepaths can not be inferred properly, seemingly because of https://github.com/rust-lang/rust/issues/21934
         (helm-ag crate-subpath search-term)
       (helm-ag current-doc-dest search-term))))
 
