@@ -44,6 +44,7 @@
 (require 'helm-ag)
 (require 'url)
 (require 'lsp)
+(require 'f)
 
 (if (< emacs-major-version 27)
     (defun rustdoc--xdg-data-home ()
@@ -115,10 +116,10 @@ Level 1 headers are things like struct or enum names."
   (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
          (helm-ag-fuzzy-match t)
          (helm-ag-success-exit-status '(0 2))
-         (name-and-path (rustdoc--thing-at-point))
-         (name (alist-get 'name name-and-path))
+         (thing-at-point-info (rustdoc--thing-at-point))
+         (name (alist-get 'name thing-at-point-info))
          (current-doc-dest (rustdoc-current-project-doc-destination))
-         (crate-subpath (concat current-doc-dest "/" (alist-get 'path name-and-path)))
+         (search-dir (alist-get 'search-dir thing-at-point-info))
          ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only 1 * at the beginning of the line.
          (regex (if current-prefix-arg
                     (progn
@@ -135,12 +136,20 @@ Level 1 headers are things like struct or enum names."
       (sleep-for 3))
     (unless (file-directory-p current-doc-dest)
       (rustdoc-create-project-dir))
-    (message "crate path: %s" crate-subpath)
-    (if (file-directory-p crate-subpath) ; In some cases we can infer parts of the filepath from the crate name.
-                                         ; E.g std::option::Option is in the folder std/option. If we infer a path and it exists in the filesystem, we run the search in there instead.
-                                         ; Some filepaths can not be inferred properly, seemingly because of https://github.com/rust-lang/rust/issues/21934
-        (helm-ag crate-subpath search-term)
-      (helm-ag current-doc-dest search-term))))
+    (helm-ag search-dir search-term)))
+
+(defun rustdoc--find-deepest-dir (path)
+  "After inferring PATH from a crate name, not all folders might exist.
+This finds the deepest existing directory in PATH and returns it.
+In some cases we can infer parts of the filepath from the crate name.
+E.g std::option::Option is in the folder std/option. If we infer a path and it exists in the filesystem, we run the search in there instead.
+Some filepaths can not be inferred properly, seemingly because of https://github.com/rust-lang/rust/issues/21934"
+
+  (if (file-directory-p (or path (rustdoc-current-project-doc-destination)))
+      (progn
+        (message "deepest dir: %s" path)
+        path)
+    (rustdoc--find-deepest-dir (f-slash (f-dirname path)))))
 
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
@@ -219,10 +228,12 @@ Level 1 headers are things like struct or enum names."
                                ((string-prefix-p "alloc" lsp-info) (concat "std" (seq-drop lsp-info 5)))
                                (t lsp-info))
                               "::" name))
-           (filepath (reduce (lambda (path p)
-                               (concat path "/" p))
-                             (butlast (split-string full-symbol-name "::")))))
-      `((full-name . ,full-symbol-name) (path . ,filepath) (name . ,name)))))
+           (search-dir (rustdoc--find-deepest-dir
+                      (concat (rustdoc-current-project-doc-destination) "/"
+                              (reduce (lambda (path p)
+                                        (concat path "/" p))
+                                      (split-string full-symbol-name "::"))))))
+      `((full-name . ,full-symbol-name) (search-dir . ,search-dir) (name . ,name)))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
