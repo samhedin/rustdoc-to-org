@@ -108,18 +108,20 @@ Level 1 headers are things like struct or enum names."
   (interactive
    (let ((thing-at-point (rustdoc--thing-at-point)))
      (list (read-string
-            (format "search term, default (%s): " (alist-get 'name thing-at-point))
+            (format "search term, default %s: " (alist-get 'symbol-at-point-name thing-at-point))
             nil
             nil
-            (alist-get 'name thing-at-point)))))
+            (alist-get 'symbol-at-point-name thing-at-point)))))
   ; These helm-ag settings are to make it work properly with ripgrep.
   (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
          (helm-ag-fuzzy-match t)
          (helm-ag-success-exit-status '(0 2))
          (thing-at-point-info (rustdoc--thing-at-point))
-         (name (alist-get 'name thing-at-point-info))
-         (search-dir (alist-get 'search-dir thing-at-point-info))
-         ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only 1 * at the beginning of the line.
+         (symbol-at-point-name (alist-get 'symbol-at-point-name thing-at-point-info))
+         (search-dir (if (string-equal symbol-at-point-name search-term) ; If the user did not accept the default search suggestion, we should not search in that suggestion's directory.
+                         (alist-get 'search-dir thing-at-point-info)
+                       rustdoc-save-location))
+         ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only one * at the beginning of the line.
          (regex (if current-prefix-arg
                     (progn
                       (setq current-prefix-arg nil) ; If this is not done, helm-ag will pick up the prefix arg too and do funny business.
@@ -133,7 +135,7 @@ Level 1 headers are things like struct or enum names."
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
       (sleep-for 3))
-    (unless (file-directory-p (rustdoc-current-project-doc-destination))
+    (unless (file-directory-p (rustdoc-current-project-doc-destination)) ; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default binding that only contains the symlink to std.
       (rustdoc-create-project-dir))
     (helm-ag search-dir search-term)))
 
@@ -200,7 +202,7 @@ In these cases, the deepest dir will be the current project dir."
 (defun rustdoc-setup ()
   "Setup or update rustdoc filter and convert script. Convert std."
   (interactive)
-  ;(rustdoc--install-resources)
+  (rustdoc--install-resources)
   (message "Setup is converting the standard library")
   (delete-directory (concat rustdoc-save-location "/std") t)
   (async-start-process
@@ -218,20 +220,20 @@ In these cases, the deepest dir will be the current project dir."
                                          (lsp--send-request)
                                          (lsp:hover-contents)))
            (lsp-info (nth 1 (split-string (gethash "value" lsp-content))))
-           (name (thing-at-point 'symbol t))
+           (symbol-at-point-name (thing-at-point 'symbol t))
            (full-symbol-name (concat
                               (cond
                                ((string-prefix-p "core" lsp-info) (concat "std" (seq-drop lsp-info 4)))
                                ((string-prefix-p "alloc" lsp-info) (concat "std" (seq-drop lsp-info 5)))
                                (t lsp-info))
-                              "::" name))
+                              "::" symbol-at-point-name))
            (search-dir (rustdoc--find-deepest-dir
                         (concat (rustdoc-current-project-doc-destination) "/"
                                 (reduce (lambda (path p)
                                           (concat path "/" p))
                                         (split-string full-symbol-name "::"))))))
-      `((full-name . ,full-symbol-name) (search-dir . ,search-dir) (name . ,name))
-    `((full-name . nil) (search-dir . ,rustdoc-save-location) (name . ,nil))))
+      `((full-name . ,full-symbol-name) (search-dir . ,search-dir) (symbol-at-point-name . ,symbol-at-point-name))
+    `((full-name . nil) (search-dir . ,rustdoc-save-location) (symbol-at-point-name . ,nil))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
