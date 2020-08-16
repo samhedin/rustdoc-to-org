@@ -60,7 +60,6 @@ Header = function(el)
       end
     end
 
-    print(crate)
     return pandoc.Header(1, el.content)
   end
   if el.classes:includes("hidden") then
@@ -112,7 +111,7 @@ Div = function(el)
     return pandoc.Null
   elseif el.classes:includes("variant") and el.classes:includes("small-section-header") and el.content[1] and tablelength(el.content[1].content) > 1 then
     return pandoc.List:new({pandoc.Header(2, pandoc.Code(el.content[1].content[2].text))})
-  elseif (el.classes:includes("section") and el.classes:includes("content") or el.attr.identifier == "implementors-list") then
+    else
     return pandoc.Div(el.content)
   end
 end,
