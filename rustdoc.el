@@ -129,9 +129,7 @@ Level 1 headers are things like struct or enum names."
                   "\\* [^-]\*"))
         (regexed-search-term (concat regex (seq-reduce (lambda (acc s)
                                                     (concat acc ".*" s)) (split-string search-term " ") "")))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
-    (when (and lsp-mode (or (bound-and-true-p rust-mode)
-                            (bound-and-true-p rustic-mode)))
-      (setq rustdoc-current-project (lsp-workspace-root)))
+    (update-current-project)
     (unless (file-directory-p rustdoc-save-loc)
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
@@ -139,6 +137,11 @@ Level 1 headers are things like struct or enum names."
     (unless (file-directory-p (rustdoc--project-doc-dest)) ; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default binding that only contains the symlink to std.
       (rustdoc-create-project-dir))
     (helm-ag search-dir regexed-search-term)))
+
+(defun update-current-project ()
+  (when (and lsp-mode (or (bound-and-true-p rust-mode)
+                          (bound-and-true-p rustic-mode)))
+    (setq rustdoc-current-project (lsp-workspace-root))))
 
 (defun rustdoc--deepest-dir (path)
   "Find the deepest existing and non-empty directory parent of PATH.
@@ -152,7 +155,8 @@ In these cases, the deepest dir will be the current project dir."
 
 ;;;###autoload
 (defun rustdoc--project-doc-dest ()
-  "The location of the documentation for the current or last seen project."
+  "The location of the documentation for the current or last seen project.
+If the user has not visited a project, returns the main doc directory."
   (if rustdoc-current-project
       (f-join rustdoc-save-loc (f-filename rustdoc-current-project))
     rustdoc-save-loc))
@@ -246,9 +250,7 @@ In these cases, the deepest dir will be the current project dir."
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-#") 'rustdoc-search)
             map)
-  (when (and lsp-mode (or (bound-and-true-p rust-mode)
-                          (bound-and-true-p rustic-mode)))
-    (setq rustdoc-current-project (lsp-workspace-root))))
+  (update-current-project))
 
 (dolist (mode '(rust-mode-hook rustic-mode-hook org-mode-hook))
   (add-hook mode 'rustdoc-mode))
