@@ -72,7 +72,7 @@
   "Location to search for documentation.
 All projects and std by default, otherwise last open project and std.")
 
-(defvar rustdoc-save-location (concat (rustdoc--xdg-data-home) "/emacs/rustdoc"))
+(defvar rustdoc-save-loc (concat (rustdoc--xdg-data-home) "/emacs/rustdoc"))
 
 (defvar rustdoc-resources `((,rustdoc-convert-prog (:exec) ,(concat rustdoc-source-repo
                                                                     "convert.sh"))
@@ -108,19 +108,19 @@ Level 1 headers are things like struct or enum names."
   (interactive
    (let ((thing-at-point (rustdoc--thing-at-point)))
      (list (read-string
-            (format "search term, default %s: " (alist-get 'symbol-at-point-name thing-at-point))
+            (format "search term, default %s: " (alist-get 'short-name thing-at-point))
             nil
             nil
-            (alist-get 'symbol-at-point-name thing-at-point)))))
+            (alist-get 'short-name thing-at-point)))))
   ; These helm-ag settings are to make it work properly with ripgrep.
   (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
          (helm-ag-fuzzy-match t)
          (helm-ag-success-exit-status '(0 2))
          (thing-at-point-info (rustdoc--thing-at-point))
-         (symbol-at-point-name (alist-get 'symbol-at-point-name thing-at-point-info))
-         (search-dir (if (string-equal symbol-at-point-name search-term) ; If the user did not accept the default search suggestion, we should not search in that suggestion's directory.
+         (short-name (alist-get 'short-name thing-at-point-info))
+         (search-dir (if (string-equal short-name search-term) ; If the user did not accept the default search suggestion, we should not search in that suggestion's directory.
                          (alist-get 'search-dir thing-at-point-info)
-                       (rustdoc-current-project-doc-destination)))
+                       (rustdoc--project-doc-dest)))
          ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only one * at the beginning of the line.
          (regex (if current-prefix-arg
                     (progn
@@ -131,15 +131,15 @@ Level 1 headers are things like struct or enum names."
                                                     (concat acc ".*" s)) (split-string search-term " ") "")))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
     (when lsp-mode
       (setq rustdoc-current-project (lsp-workspace-root)))
-    (unless (file-directory-p rustdoc-save-location)
+    (unless (file-directory-p rustdoc-save-loc)
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
       (sleep-for 3))
-    (unless (file-directory-p (rustdoc-current-project-doc-destination)) ; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default binding that only contains the symlink to std.
+    (unless (file-directory-p (rustdoc--project-doc-dest)) ; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default binding that only contains the symlink to std.
       (rustdoc-create-project-dir))
     (helm-ag search-dir search-term)))
 
-(defun rustdoc--find-deepest-dir (path)
+(defun rustdoc--deepest-dir (path)
   "Find the deepest existing and non-empty directory parent of PATH.
 We can sometimes infer the filepath from the crate name.
 E.g the enum std::option::Option is in the folder std/option.
@@ -147,23 +147,23 @@ Some filepaths can not be inferred properly, seemingly because of URL `https://g
 In these cases, the deepest dir will be the current project dir."
       (if (and (file-exists-p path) (file-directory-p path) (not (f-empty-p path)))
         path
-        (rustdoc--find-deepest-dir (f-slash (f-dirname path)))))
+        (rustdoc--deepest-dir (f-slash (f-dirname path)))))
 
 ;;;###autoload
-(defun rustdoc-current-project-doc-destination ()
-  "The location of the documentation for the last seen project."
-  (f-join rustdoc-save-location (f-filename rustdoc-current-project)))
+(defun rustdoc--project-doc-dest ()
+  "The location of the documentation for the current or last seen project."
+  (f-join rustdoc-save-loc (f-filename rustdoc-current-project)))
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
   "Create a rustdoc directory for the current project. Link with std."
     (let* ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
                             "emacs/rustdoc/std"))
-           (link-name (concat (rustdoc-current-project-doc-destination) "/std"))
-           (current-doc-dest (rustdoc-current-project-doc-destination)))
+           (link-name (concat (rustdoc--project-doc-dest) "/std"))
+           (current-doc-dest (rustdoc--project-doc-dest)))
       (if current-doc-dest
           (progn
-            (make-directory (rustdoc-current-project-doc-destination) t)
+            (make-directory (rustdoc--project-doc-dest) t)
             (make-symbolic-link link-tgt link-name t))
         (message "Couldn't create project doc directory."))))
 
@@ -172,7 +172,7 @@ In these cases, the deepest dir will be the current project dir."
 (defun rustdoc-convert-current-package ()
   "Convert the documentation for a project and its dependencies."
   (interactive)
-  (unless (file-directory-p rustdoc-save-location)
+  (unless (file-directory-p rustdoc-save-loc)
     (rustdoc-setup)
     (message "Running first time setup.")
     (sleep-for 3))
@@ -195,7 +195,7 @@ In these cases, the deepest dir will be the current project dir."
            rustdoc-convert-prog
            finish-func
            docs-src
-           (rustdoc-current-project-doc-destination))))
+           (rustdoc--project-doc-dest))))
     (message "Could not find project to convert. Visit a rust project first!")))
 
 ;;;###autoload
@@ -204,7 +204,7 @@ In these cases, the deepest dir will be the current project dir."
   (interactive)
   (rustdoc--install-resources)
   (message "Setup is converting the standard library")
-  (delete-directory (concat rustdoc-save-location "/std") t)
+  (delete-directory (concat rustdoc-save-loc "/std") t)
   (async-start-process
    "*rustdoc-std-conversion*"
    rustdoc-convert-prog
@@ -220,20 +220,21 @@ In these cases, the deepest dir will be the current project dir."
                                          (lsp--send-request)
                                          (lsp:hover-contents)))
            (lsp-info (nth 1 (split-string (gethash "value" lsp-content))))
-           (symbol-at-point-name (thing-at-point 'symbol t))
-           (full-symbol-name (concat
+           (short-name (thing-at-point 'symbol t)) ; `short-name' could be `Option'
+           ; And in that case long-name would be `std::option::Option'
+           (long-name (concat
                               (cond
                                ((string-prefix-p "core" lsp-info) (concat "std" (seq-drop lsp-info 4)))
                                ((string-prefix-p "alloc" lsp-info) (concat "std" (seq-drop lsp-info 5)))
                                (t lsp-info))
-                              "::" symbol-at-point-name))
-           (search-dir (rustdoc--find-deepest-dir
-                        (concat (rustdoc-current-project-doc-destination) "/"
+                              "::" short-name))
+           (search-dir (rustdoc--deepest-dir
+                        (concat (rustdoc--project-doc-dest) "/"
                                 (reduce (lambda (path p)
                                           (concat path "/" p))
-                                        (split-string full-symbol-name "::"))))))
-      `((full-name . ,full-symbol-name) (search-dir . ,search-dir) (symbol-at-point-name . ,symbol-at-point-name))
-    `((full-name . nil) (search-dir . ,(rustdoc-current-project-doc-destination)) (symbol-at-point-name . ,nil))))
+                                        (split-string long-name "::"))))))
+      `((long-name . ,long-name) (search-dir . ,search-dir) (short-name . ,short-name))
+    `((long-name . nil) (search-dir . ,(rustdoc--project-doc-dest)) (short-name . ,nil))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
