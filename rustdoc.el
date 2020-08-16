@@ -94,6 +94,9 @@ All projects and std by default, otherwise last open project and std.")
                                        (error (format "Could not retrieve %s" dst)))))))
       (x (error "Invalid resource spec: %s" x)))))
 
+;; 1. If the search term contains `unknown', remove it.
+;; 2. Map hover details to folder.
+
 ;;;###autoload
 (defun rustdoc-search (search-term)
   "Search the rust documentation for SEARCH-TERM.
@@ -102,10 +105,10 @@ to limit the number of results.
 To limit search results to only level 1 headers, add the prefix command `C-u'.
 Level 1 headers are things like struct or enum names."
   (interactive (list (read-string
-                      (format "search term, default (%s): " (rustdoc--thing-at-point))
+                      (format "search term, default (%s): " (alist-get 'name (rustdoc--thing-at-point)))
                       nil
                       nil
-                      (rustdoc--thing-at-point))))
+                      (alist-get 'name (rustdoc--thing-at-point)))))
   (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
          (helm-ag-fuzzy-match t)
          (helm-ag-success-exit-status '(0 2))
@@ -202,8 +205,11 @@ Level 1 headers are things like struct or enum names."
                                ((string-prefix-p "core" lsp-info) (concat "std" (seq-drop lsp-info 4)))
                                ((string-prefix-p "alloc" lsp-info) (concat "std" (seq-drop lsp-info 5)))
                                (t lsp-info))
-                              "::" (thing-at-point 'symbol t))))
-      full-symbol-name)))
+                              "::" (thing-at-point 'symbol t)))
+           (filepath (reduce (lambda (path p)
+                               (concat path "/" p))
+                             (butlast (split-string full-symbol-name "::")))))
+      `((name . ,full-symbol-name) (path . ,filepath)))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
