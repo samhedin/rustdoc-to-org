@@ -211,12 +211,13 @@ In these cases, the deepest dir will be the current project dir."
 
 ;;;###autoload
 (defun rustdoc--thing-at-point ()
-  (interactive)
-  (if lsp-mode
-    (let* ((lsp-info (nth 1 (split-string (gethash "value"  (-some->> (lsp--text-document-position-params)
-                                                              (lsp--make-request "textDocument/hover")
-                                                              (lsp--send-request)
-                                                              (lsp:hover-contents))))))
+  "Returns info about thing-at-point. If thing-at-point is nil, return defaults."
+  (if-let ((active lsp-mode)
+           (lsp-content (-some->> (lsp--text-document-position-params)
+                                         (lsp--make-request "textDocument/hover")
+                                         (lsp--send-request)
+                                         (lsp:hover-contents)))
+           (lsp-info (nth 1 (split-string (gethash "value" lsp-content))))
            (name (thing-at-point 'symbol t))
            (full-symbol-name (concat
                               (cond
@@ -225,11 +226,11 @@ In these cases, the deepest dir will be the current project dir."
                                (t lsp-info))
                               "::" name))
            (search-dir (rustdoc--find-deepest-dir
-                      (concat (rustdoc-current-project-doc-destination) "/"
-                              (reduce (lambda (path p)
-                                        (concat path "/" p))
-                                      (split-string full-symbol-name "::"))))))
-      `((full-name . ,full-symbol-name) (search-dir . ,search-dir) (name . ,name)))
+                        (concat (rustdoc-current-project-doc-destination) "/"
+                                (reduce (lambda (path p)
+                                          (concat path "/" p))
+                                        (split-string full-symbol-name "::"))))))
+      `((full-name . ,full-symbol-name) (search-dir . ,search-dir) (name . ,name))
     `((full-name . nil) (search-dir . ,rustdoc-save-location) (name . ,nil))))
 
 ;;;###autoload
