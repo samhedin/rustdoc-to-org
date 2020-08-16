@@ -212,7 +212,7 @@ In these cases, the deepest dir will be the current project dir."
 ;;;###autoload
 (defun rustdoc--thing-at-point ()
   (interactive)
-  (when lsp-mode
+  (if lsp-mode
     (let* ((lsp-info (nth 1 (split-string (gethash "value"  (-some->> (lsp--text-document-position-params)
                                                               (lsp--make-request "textDocument/hover")
                                                               (lsp--send-request)
@@ -229,7 +229,8 @@ In these cases, the deepest dir will be the current project dir."
                               (reduce (lambda (path p)
                                         (concat path "/" p))
                                       (split-string full-symbol-name "::"))))))
-      `((full-name . ,full-symbol-name) (search-dir . ,search-dir) (name . ,name)))))
+      `((full-name . ,full-symbol-name) (search-dir . ,search-dir) (name . ,name)))
+    `((full-name . nil) (search-dir . ,rustdoc-save-location) (name . ,nil))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
