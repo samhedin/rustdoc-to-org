@@ -129,11 +129,11 @@ Level 1 headers are things like struct or enum names."
          ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only one * at the beginning of the line.
          (regex (if current-prefix-arg
                     (progn
-                      ;; If this is not done, helm-ag will pick up the prefix arg too and do funny business.
+                      ;; If current-prefix-arg is not set to nil, helm-ag will pick up the prefix arg too and do funny business.
                       (setq current-prefix-arg nil)
                       "^\\* [^-(<]*")
-                  "^(?!.*impl)^\\*+[^-(<]*")) ; Do not match if it's an impl, type of an argument, return type from a function.
-         ;; This turns a search for `enum option' into `enum.*option', which lets there be chars between the searched words
+                  "^(?!.*impl)^\\*+[^-(<]*")) ; Do not match if it's an impl, type of an argument or return type from a function.
+         ;; This seq-reduce turns `enum option' into (kind of) `enum.*option', which lets there be chars between the searched words
          (regexed-search-term (concat regex
                                       (seq-reduce (lambda (acc s)
                                                     (concat acc "[^-(<]*" s))
@@ -244,15 +244,15 @@ If the user has not visited a project, returns the main doc directory."
                           (lsp--make-request "textDocument/hover")
                           (lsp--send-request)
                           (lsp:hover-contents)))
-                                        ; `short-name' could be `Option'
+           ;; `short-name' is the unqalified of a struct, function etc, like `Option'
            (short-name (thing-at-point 'symbol t))
-                                        ; If symbol at point is a primitive, the `value' key is different than in most cases.
-                                        ; If it is a primitive, we concat the name with primitive for searching.
+           ;; If symbol at point is a primitive, the `value' key is different than in most cases.
+           ;; If it is a primitive, we concat the name with primitive for searching.
            (lsp-info (or (nth 1
                               (split-string (gethash "value" lsp-content)))
                          (setq short-name (concat "primitive "
                                                   (gethash "value" lsp-content)))))
-                                        ; If short-name was `Option', long-name would be `std::option::Option'
+            ;; If short-name was `Option', long-name would be `std::option::Option'
            (long-name (concat (cond
                                ((string-prefix-p "core" lsp-info)
                                 (concat "std"
