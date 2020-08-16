@@ -32,12 +32,10 @@ There are two alternatives to install the package - with quelpa or manually. Ple
 
 ## Notes
 * We are waiting for an update to Pandoc that will make the generated documents prettier, it should be available soon https://github.com/jgm/pandoc/issues/6554
-* Some formatting choices of the org documents have been made as temporary solutions, or as early parts in future solutions. It will look nicer with time!
-
 ## TODO
 
 * Figure out a way to get links working. All links point to .html files, they should be updated to point to .org files.
 * Make code not awful and not slow.
 * Fill out this list.
 
-All suggestions, comments and more are welcomed!
+All suggestions, comments, bug reports, PRs etc are very welcomed!
