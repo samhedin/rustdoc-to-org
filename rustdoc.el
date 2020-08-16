@@ -4,7 +4,7 @@
 
 ;; Author: Sam Hedin <sam.hedin@gmail.com>
 ;;         Jonas Møller <jonas.moeller2@protonmail.com>
-;; URL: https://github.com/samhedin/rustdoc
+;; URL: https://github.com/samhedin/rustdoc-to-org
 ;; Version: 0.5
 ;; Keywords: docs languages
 ;; Package-Requires: ((emacs "26.1") (helm-ag "20200811.1304") (lsp "20200815.2106") (f "20191110.1357"))
