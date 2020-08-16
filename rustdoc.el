@@ -112,6 +112,9 @@ Level 1 headers are things like struct or enum names."
   (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
          (helm-ag-fuzzy-match t)
          (helm-ag-success-exit-status '(0 2))
+         (name-and-path (rustdoc--thing-at-point))
+         (name (alist-get 'name name-and-path))
+         (path (concat (rustdoc-current-project-doc-destination) "/" (alist-get 'path name-and-path)))
          (regex (if current-prefix-arg
                     (progn
                       (setq current-prefix-arg nil)
@@ -127,7 +130,16 @@ Level 1 headers are things like struct or enum names."
       (sleep-for 3))
     (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
-    (helm-ag (rustdoc-current-project-doc-destination) search-term)))
+    (message "path: %s" path)
+    (if (file-directory-p path)
+        (helm-ag
+             path
+             search-term)
+      (helm-ag (rustdoc-current-project-doc-destination) search-term))))
+
+(defun rustdoc--search-dir (path symbol)
+  "Search PATH for SYMBOL, where PATH is a subdir to current doc destination."
+  (helm-ag (concat (rustdoc-current-project-doc-destination) "/" path) symbol))
 
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
