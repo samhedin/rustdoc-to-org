@@ -60,7 +60,7 @@
   "Save location for the rustdoc lua filter.")
 
 (defvar rustdoc-convert-prog (concat (file-name-as-directory (getenv "HOME"))
-                                   ".local/bin/rustdoc-convert.sh")
+                                     ".local/bin/rustdoc-convert.sh")
   "Save location for the rustdoc conversion script.")
 
 (defvar rustdoc-source-user "samhedin")
@@ -68,30 +68,39 @@
 (defvar rustdoc-source-repo (format "https://raw.githubusercontent.com/%s/rustdoc-to-org/master/"
                                     rustdoc-source-user))
 
-(defvar rustdoc-current-project nil
-  "Location to search for documentation.
+(defvar rustdoc-current-project nil "Location to search for documentation.
 All projects and std by default, otherwise last open project and std.")
 
-(defvar rustdoc-save-loc (concat (rustdoc--xdg-data-home) "/emacs/rustdoc"))
+(defvar rustdoc-save-loc (concat (rustdoc--xdg-data-home)
+                                 "/emacs/rustdoc"))
 
-(defvar rustdoc-resources `((,rustdoc-convert-prog (:exec) ,(concat rustdoc-source-repo
-                                                                    "convert.sh"))
-                            (,rustdoc-lua-filter () ,(concat rustdoc-source-repo
-                                                             "filter.lua"))))
+(defvar rustdoc-resources `((,rustdoc-convert-prog
+                             (:exec)
+                             ,(concat rustdoc-source-repo "convert.sh"))
+                            (,rustdoc-lua-filter
+                             ()
+                             ,(concat rustdoc-source-repo "filter.lua"))))
 
 (defun rustdoc--install-resources ()
   "Install or update the rustdoc resources."
   (dolist (resource rustdoc-resources)
     (pcase resource
-      (`(,dst ,opts ,src) (condition-case nil
-                              (progn
-                                (url-copy-file src dst t)
-                                (when (memq :exec opts)
-                                  (call-process (executable-find "chmod") nil nil nil "+x" dst)))
-                            (error (progn
-                                     (if (file-exists-p dst)
-                                         (message (format "Could not update %s, using existing one" dst))
-                                       (error (format "Could not retrieve %s" dst)))))))
+      (`(,dst ,opts ,src)
+       (condition-case nil
+           (progn
+             (url-copy-file src dst t)
+             (when (memq :exec opts)
+               (call-process (executable-find "chmod")
+                             nil
+                             nil
+                             nil
+                             "+x"
+                             dst)))
+         (error (progn
+                  (if (file-exists-p dst)
+                      (message (format "Could not update %s, using existing one"
+                                       dst))
+                    (error (format "Could not retrieve %s" dst)))))))
       (x (error "Invalid resource spec: %s" x)))))
 
 ;; 1. If the search term contains `unknown', remove it.
@@ -104,45 +113,49 @@ Only searches in headers (structs, functions, traits, enums, etc)
 to limit the number of results.
 To limit search results to only level 1 headers, add the prefix command `C-u'.
 Level 1 headers are things like struct or enum names."
-  (interactive
-   (let ((short-name (alist-get 'short-name (rustdoc--thing-at-point))))
-     (list (read-string
-            (format "search term, default %s: " short-name)
-            nil
-            nil
-            short-name))))
-  ; These helm-ag settings are to make it work properly with ripgrep.
+  (interactive (let ((short-name (alist-get 'short-name
+                                            (rustdoc--thing-at-point))))
+                 (list (read-string (format "search term, default %s: " short-name)
+                                    nil
+                                    nil
+                                    short-name))))
+  ;; These helm-ag settings are to make it work properly with ripgrep.
   (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number --pcre2")
          (helm-ag-fuzzy-match t)
          (helm-ag-success-exit-status '(0 2))
          (thing-at-point (rustdoc--thing-at-point))
          (short-name (alist-get 'short-name thing-at-point))
-         (search-dir (if (string-equal short-name search-term) ; If the user did not accept the default search suggestion, we should not search in that suggestion's directory.
+         ;; If the user did not accept the default search suggestion, we should not search in that suggestion's directory.
+         (search-dir (if (string-equal short-name search-term)
                          (alist-get 'search-dir thing-at-point)
                        (rustdoc--project-doc-dest)))
          ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only one * at the beginning of the line.
          (regex (if current-prefix-arg
                     (progn
-                      (setq current-prefix-arg nil) ; If this is not done, helm-ag will pick up the prefix arg too and do funny business.
+                      ;; If this is not done, helm-ag will pick up the prefix arg too and do funny business.
+                      (setq current-prefix-arg nil)
                       "^\\* [^-(<]*")
                   "^(?!.*impl)^\\*+[^-(<]*")) ; Do not match if it's an impl, type of an argument, return type from a function.
+         ;; This turns a search for `enum option' into `enum.*option', which lets there be chars between the searched words
          (regexed-search-term (concat regex
-                                      ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
                                       (seq-reduce (lambda (acc s)
-                                                    (concat acc "[^-(<]*" s)) (split-string search-term " ") ""))))
+                                                    (concat acc "[^-(<]*" s))
+                                                  (split-string search-term " ")
+                                                  ""))))
     (rustdoc--update-current-project)
     (unless (file-directory-p rustdoc-save-loc)
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
       (sleep-for 3))
-     ; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default binding that only contains the symlink to std.
+    ;; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default binding that only contains the symlink to std.
     (unless (file-directory-p (rustdoc--project-doc-dest))
       (rustdoc-create-project-dir))
     (helm-ag search-dir regexed-search-term)))
 
 (defun rustdoc--update-current-project ()
-"Update `rustdoc-current-project' if editing a rust file, otherwise leave it."
-  (when (and lsp-mode (derived-mode-p 'rust-mode 'rustic-mode))
+  "Update `rustdoc-current-project' if editing a rust file, otherwise leave it."
+  (when (and lsp-mode
+             (derived-mode-p 'rust-mode 'rustic-mode))
     (setq rustdoc-current-project (lsp-workspace-root))))
 
 (defun rustdoc--deepest-dir (path)
@@ -152,29 +165,34 @@ E.g the enum std::option::Option is in the folder std/option.
 Some filepaths can not be inferred properly, seemingly because of
 URL `https://github.com/rust-lang/rust/issues/21934'.
 In these cases, the deepest dir will be the current project dir."
-      (if (and (file-exists-p path) (file-directory-p path) (not (f-empty-p path)))
-        path
-        (rustdoc--deepest-dir (f-slash (f-dirname path)))))
+  (if (and (file-exists-p path)
+           (file-directory-p path)
+           (not (f-empty-p path)))
+      path
+    (rustdoc--deepest-dir (f-slash (f-dirname path)))))
 
 (defun rustdoc--project-doc-dest ()
   "The location of the documentation for the current or last seen project.
 If the user has not visited a project, returns the main doc directory."
   (if rustdoc-current-project
-      (f-join rustdoc-save-loc (f-filename rustdoc-current-project))
+      (f-join rustdoc-save-loc
+              (f-filename rustdoc-current-project))
     rustdoc-save-loc))
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
   "Create a rustdoc directory for the current project. Link with std."
-    (let* ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
-                            "emacs/rustdoc/std"))
-           (link-name (concat (rustdoc--project-doc-dest) "/std"))
-           (current-doc-dest (rustdoc--project-doc-dest)))
-      (if current-doc-dest
-          (progn
-            (make-directory (rustdoc--project-doc-dest) t)
-            (make-symbolic-link link-tgt link-name t))
-        (message "Couldn't create project doc directory."))))
+  (let* ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
+                           "emacs/rustdoc/std"))
+         (link-name (concat (rustdoc--project-doc-dest)
+                            "/std"))
+         (current-doc-dest (rustdoc--project-doc-dest)))
+    (if current-doc-dest
+        (progn
+          (make-directory (rustdoc--project-doc-dest)
+                          t)
+          (make-symbolic-link link-tgt link-name t))
+      (message "Couldn't create project doc directory."))))
 
 
 ;;;###autoload
@@ -187,24 +205,25 @@ If the user has not visited a project, returns the main doc directory."
     (sleep-for 3))
   (if rustdoc-current-project
       (progn
-        (message "Converting documentation for %s " rustdoc-current-project)
+        (message "Converting documentation for %s "
+                 rustdoc-current-project)
         (call-process "cargo" nil nil nil "makedocs")
-        (let* ((docs-src (concat (file-name-as-directory rustdoc-current-project) "target/doc"))
+        (let* ((docs-src (concat (file-name-as-directory rustdoc-current-project)
+                                 "target/doc"))
                ;; FIXME: Many projects could share the same docs.
                ;;        *However* that would have to be versioned, so
                ;;        we'll have to figure out a way to coerce `<crate>-<version>`
                ;;        strings out of cargo, or just parse the Cargo.toml file, but
                ;;        then we'd have to review different parsing solutions.
                (finish-func (lambda (_p)
-                              (message (format "Finished converting docs for %s" rustdoc-current-project)))))
-
+                              (message (format "Finished converting docs for %s"
+                                               rustdoc-current-project)))))
           (rustdoc-create-project-dir)
-          (async-start-process
-           "*rustdoc-convert*"
-           rustdoc-convert-prog
-           finish-func
-           docs-src
-           (rustdoc--project-doc-dest))))
+          (async-start-process "*rustdoc-convert*"
+                               rustdoc-convert-prog
+                               finish-func
+                               docs-src
+                               (rustdoc--project-doc-dest))))
     (message "Could not find project to convert. Visit a rust project first!")))
 
 ;;;###autoload
@@ -213,40 +232,49 @@ If the user has not visited a project, returns the main doc directory."
   (interactive)
   (rustdoc--install-resources)
   (message "Setup is converting the standard library")
-  (delete-directory (concat rustdoc-save-loc "/std") t)
-  (async-start-process
-   "*rustdoc-std-conversion*"
-   rustdoc-convert-prog
-   (lambda (_p) (message "Finished converting docs for std"))
-   "std"))
+  (delete-directory (concat rustdoc-save-loc "/std")
+                    t)
+  (async-start-process "*rustdoc-std-conversion*"
+                       rustdoc-convert-prog
+                       (lambda (_p)
+                         (message "Finished converting docs for std"))
+                       "std"))
 
 (defun rustdoc--thing-at-point ()
   "Return info about `thing-at-point'. If `thing-at-point' is nil, return defaults."
   (if-let ((active lsp-mode)
            (lsp-content (-some->> (lsp--text-document-position-params)
-                                         (lsp--make-request "textDocument/hover")
-                                         (lsp--send-request)
-                                         (lsp:hover-contents)))
-           ; `short-name' could be `Option'
+                          (lsp--make-request "textDocument/hover")
+                          (lsp--send-request)
+                          (lsp:hover-contents)))
+                                        ; `short-name' could be `Option'
            (short-name (thing-at-point 'symbol t))
-           ; If symbol at point is a primitive, the `value' key is different than in most cases.
-           ; If it is a primitive, we concat the name with primitive for searching.
-           (lsp-info (or (nth 1 (split-string (gethash "value" lsp-content)))
-                         (setq short-name (concat "primitive " (gethash "value" lsp-content)))))
-           ; If short-name was `Option', long-name would be `std::option::Option'
-           (long-name (concat
-                              (cond
-                               ((string-prefix-p "core" lsp-info) (concat "std" (seq-drop lsp-info 4)))
-                               ((string-prefix-p "alloc" lsp-info) (concat "std" (seq-drop lsp-info 5)))
+                                        ; If symbol at point is a primitive, the `value' key is different than in most cases.
+                                        ; If it is a primitive, we concat the name with primitive for searching.
+           (lsp-info (or (nth 1
+                              (split-string (gethash "value" lsp-content)))
+                         (setq short-name (concat "primitive "
+                                                  (gethash "value" lsp-content)))))
+                                        ; If short-name was `Option', long-name would be `std::option::Option'
+           (long-name (concat (cond
+                               ((string-prefix-p "core" lsp-info)
+                                (concat "std"
+                                        (seq-drop lsp-info 4)))
+                               ((string-prefix-p "alloc" lsp-info)
+                                (concat "std"
+                                        (seq-drop lsp-info 5)))
                                (t lsp-info))
-                              "::" short-name))
-           (search-dir (rustdoc--deepest-dir
-                        (concat (rustdoc--project-doc-dest) "/"
-                                (reduce (lambda (path p)
-                                          (concat path "/" p))
-                                        (split-string long-name "::"))))))
-      `((search-dir . ,search-dir) (short-name . ,short-name))
-    `((search-dir . ,(rustdoc--project-doc-dest)) (short-name . ,nil))))
+                              "::"
+                              short-name))
+           (search-dir (rustdoc--deepest-dir (concat (rustdoc--project-doc-dest)
+                                                     "/"
+                                                     (reduce (lambda (path p)
+                                                               (concat path "/" p))
+                                                             (split-string long-name "::"))))))
+      `((search-dir . ,search-dir)
+        (short-name . ,short-name))
+    `((search-dir . ,(rustdoc--project-doc-dest))
+      (short-name . ,nil))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
@@ -254,8 +282,7 @@ If the user has not visited a project, returns the main doc directory."
   :lighter " browse rust documentation"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-#") 'rustdoc-search)
-            map)
-  (rustdoc--update-current-project))
+            map)(rustdoc--update-current-project))
 
 (dolist (mode '(rust-mode-hook rustic-mode-hook org-mode-hook))
   (add-hook mode 'rustdoc-mode))
