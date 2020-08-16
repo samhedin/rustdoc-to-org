@@ -129,7 +129,8 @@ Level 1 headers are things like struct or enum names."
                   "\\* [^-]\*"))
         (regexed-search-term (concat regex (seq-reduce (lambda (acc s)
                                                     (concat acc ".*" s)) (split-string search-term " ") "")))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
-    (when lsp-mode
+    (when (and lsp-mode (or (bound-and-true-p rust-mode)
+                            (bound-and-true-p rustic-mode)))
       (setq rustdoc-current-project (lsp-workspace-root)))
     (unless (file-directory-p rustdoc-save-loc)
       (rustdoc-setup)
@@ -152,7 +153,9 @@ In these cases, the deepest dir will be the current project dir."
 ;;;###autoload
 (defun rustdoc--project-doc-dest ()
   "The location of the documentation for the current or last seen project."
-  (f-join rustdoc-save-loc (f-filename rustdoc-current-project)))
+  (if rustdoc-current-project
+      (f-join rustdoc-save-loc (f-filename rustdoc-current-project))
+    rustdoc-save-loc))
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
@@ -243,7 +246,9 @@ In these cases, the deepest dir will be the current project dir."
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-#") 'rustdoc-search)
             map)
-  (setq rustdoc-current-project (lsp-workspace-root)))
+  (when (and lsp-mode (or (bound-and-true-p rust-mode)
+                          (bound-and-true-p rustic-mode)))
+    (setq rustdoc-current-project (lsp-workspace-root))))
 
 (dolist (mode '(rust-mode-hook rustic-mode-hook org-mode-hook))
   (add-hook mode 'rustdoc-mode))
