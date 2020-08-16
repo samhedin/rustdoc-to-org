@@ -226,9 +226,13 @@ If the user has not visited a project, returns the main doc directory."
                                          (lsp--make-request "textDocument/hover")
                                          (lsp--send-request)
                                          (lsp:hover-contents)))
-           (lsp-info (nth 1 (split-string (gethash "value" lsp-content))))
-           (short-name (thing-at-point 'symbol t)) ; `short-name' could be `Option'
-           ; And in that case long-name would be `std::option::Option'
+           ; `short-name' could be `Option'
+           (short-name (thing-at-point 'symbol t))
+           ; If symbol at point is a primitive, the `value' key is different than in most cases.
+           ; If it is a primitive, we concat the name with primitive for searching.
+           (lsp-info (or (nth 1 (split-string (gethash "value" lsp-content)))
+                         (setq short-name (concat "primitive " (gethash "value" lsp-content)))))
+           ; If short-name was `Option', long-name would be `std::option::Option'
            (long-name (concat
                               (cond
                                ((string-prefix-p "core" lsp-info) (concat "std" (seq-drop lsp-info 4)))
@@ -240,8 +244,8 @@ If the user has not visited a project, returns the main doc directory."
                                 (reduce (lambda (path p)
                                           (concat path "/" p))
                                         (split-string long-name "::"))))))
-      `((long-name . ,long-name) (search-dir . ,search-dir) (short-name . ,short-name))
-    `((long-name . nil) (search-dir . ,(rustdoc--project-doc-dest)) (short-name . ,nil))))
+      `((search-dir . ,search-dir) (short-name . ,short-name))
+    `((search-dir . ,(rustdoc--project-doc-dest)) (short-name . ,nil))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
