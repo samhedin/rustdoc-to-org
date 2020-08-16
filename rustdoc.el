@@ -120,7 +120,7 @@ Level 1 headers are things like struct or enum names."
          (symbol-at-point-name (alist-get 'symbol-at-point-name thing-at-point-info))
          (search-dir (if (string-equal symbol-at-point-name search-term) ; If the user did not accept the default search suggestion, we should not search in that suggestion's directory.
                          (alist-get 'search-dir thing-at-point-info)
-                       rustdoc-save-location))
+                       (rustdoc-current-project-doc-destination)))
          ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only one * at the beginning of the line.
          (regex (if current-prefix-arg
                     (progn
@@ -152,7 +152,7 @@ In these cases, the deepest dir will be the current project dir."
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
   "The location of the documentation for the last seen project."
-    (concat rustdoc-save-location "/" (file-name-nondirectory (directory-file-name (file-name-directory (concat rustdoc-current-project "/"))))))
+  (f-join rustdoc-save-location (f-filename rustdoc-current-project)))
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
@@ -233,7 +233,7 @@ In these cases, the deepest dir will be the current project dir."
                                           (concat path "/" p))
                                         (split-string full-symbol-name "::"))))))
       `((full-name . ,full-symbol-name) (search-dir . ,search-dir) (symbol-at-point-name . ,symbol-at-point-name))
-    `((full-name . nil) (search-dir . ,rustdoc-save-location) (symbol-at-point-name . ,nil))))
+    `((full-name . nil) (search-dir . ,(rustdoc-current-project-doc-destination)) (symbol-at-point-name . ,nil))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
