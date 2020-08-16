@@ -70,7 +70,6 @@ Header = function(el)
     local in_methodname = true
     local in_must_use_text = false
 
-    -- if the function is public we first remove the pub substring from the text, but we place the string pub in the beginning with the use of maybepub
     local maybepub = ""
     if string.find(code.text, "pub") then
       code.text = code.text:gsub("pub", "")
@@ -90,12 +89,7 @@ Header = function(el)
      while i <= #code.text do
 
       i = i + 1
-
-      -- These are some confusing leaps in iteration we must do depending on some circumstances. If we don't do these, we get whitespace between crate name and function name.
-      if in_methodname and (not contains_must_use) and beginning and maybepub == "" then
-        i = i + 1
-        beginning = false
-      elseif in_methodname and (not contains_must_use) and beginning then
+      if in_methodname and (not contains_must_use) and beginning then
         i = i + 2
         beginning = false
       end
