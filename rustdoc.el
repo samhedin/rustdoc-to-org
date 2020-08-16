@@ -204,7 +204,7 @@ Some filepaths can not be inferred properly, seemingly because of https://github
 (defun rustdoc-setup ()
   "Setup or update rustdoc filter and convert script. Convert std."
   (interactive)
-  (rustdoc--install-resources)
+  ;(rustdoc--install-resources)
   (message "Setup is converting the standard library")
   (delete-directory (concat rustdoc-save-location "/std") t)
   (async-start-process

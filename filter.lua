@@ -4,7 +4,13 @@ function tablelength(T)
   for _ in pairs(T) do count = count + 1 end
   return count
 end
-
+function table.shallow_copy(t)
+  local t2 = {}
+  for k,v in pairs(t) do
+    t2[k] = v
+  end
+  return t2
+end
 function dump(o)
   if type(o) == 'table' then
     local s = '{ '
@@ -54,6 +60,7 @@ Header = function(el)
       end
     end
 
+    print(crate)
     return pandoc.Header(1, el.content)
   end
   if el.classes:includes("hidden") then
@@ -64,19 +71,11 @@ Header = function(el)
 
   if el.classes:includes("method") then
     local code = el.content[1]
+    local methodname = ""
     local must_use_text = ""
     local contains_must_use = false
     local in_methodname = true
     local in_must_use_text = false
-
-    local is_pub = ""
-    if string.find(code.text, "pub") then
-      code.text = code.text:gsub("pub", "")
-      is_pub = "pub"
-    end
-    code.text = code.text:gsub("fn", "")
-
-    local methodname = is_pub .. " fn " .. crate
 
     if string.match(code.text, "must_use") then
       in_methodname = false
@@ -112,7 +111,7 @@ Div = function(el)
   if el.classes:includes("shortcuts") or el.classes:includes("sidebar-elems") or el.classes:includes("theme-picker") or el.classes:includes("infos") or el.classes:includes("search-container")  or el.classes:includes("sidebar-menu") or el.classes:includes("logo-container") or el.classes:includes("toggle-wrapper") then
     return pandoc.Null
   elseif el.classes:includes("variant") and el.classes:includes("small-section-header") and el.content[1] and tablelength(el.content[1].content) > 1 then
-    return pandoc.List:new({pandoc.Header(2, pandoc.Code(crate .. el.content[1].content[2].text))})
+    return pandoc.List:new({pandoc.Header(2, pandoc.Code(el.content[1].content[2].text))})
   elseif (el.classes:includes("section") and el.classes:includes("content") or el.attr.identifier == "implementors-list") then
     return pandoc.Div(el.content)
   end
