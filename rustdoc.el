@@ -105,12 +105,12 @@ to limit the number of results.
 To limit search results to only level 1 headers, add the prefix command `C-u'.
 Level 1 headers are things like struct or enum names."
   (interactive
-   (let ((thing-at-point (rustdoc--thing-at-point)))
+   (let ((short-name (alist-get 'short-name (rustdoc--thing-at-point))))
      (list (read-string
-            (format "search term, default %s: " (alist-get 'short-name thing-at-point))
+            (format "search term, default %s: " short-name)
             nil
             nil
-            (alist-get 'short-name thing-at-point)))))
+            short-name))))
   ; These helm-ag settings are to make it work properly with ripgrep.
   (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number --pcre2")
          (helm-ag-fuzzy-match t)
@@ -126,20 +126,22 @@ Level 1 headers are things like struct or enum names."
                       (setq current-prefix-arg nil) ; If this is not done, helm-ag will pick up the prefix arg too and do funny business.
                       "^\\* [^-(<]*")
                   "^(?!.*impl)^\\*+[^-(<]*")) ; Do not match if it's an impl, type of an argument, return type from a function.
-         (regexed-search-term (concat regex 
+         (regexed-search-term (concat regex
+                                      ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
                                       (seq-reduce (lambda (acc s)
-                                                    (concat acc "[^-(<]*" s)) (split-string search-term " ") "")))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
+                                                    (concat acc "[^-(<]*" s)) (split-string search-term " ") ""))))
     (rustdoc--update-current-project)
     (unless (file-directory-p rustdoc-save-loc)
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
       (sleep-for 3))
-    (unless (file-directory-p (rustdoc--project-doc-dest)) ; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default binding that only contains the symlink to std.
+     ; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default binding that only contains the symlink to std.
+    (unless (file-directory-p (rustdoc--project-doc-dest))
       (rustdoc-create-project-dir))
     (helm-ag search-dir regexed-search-term)))
 
 (defun rustdoc--update-current-project ()
-"Update `rustdoc-current-project' if appropriate."
+"Update `rustdoc-current-project' if editing a rust file, otherwise leave it."
   (when (and lsp-mode (derived-mode-p 'rust-mode 'rustic-mode))
     (setq rustdoc-current-project (lsp-workspace-root))))
 
