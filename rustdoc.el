@@ -115,14 +115,14 @@ Level 1 headers are things like struct or enum names."
          (name-and-path (rustdoc--thing-at-point))
          (name (alist-get 'name name-and-path))
          (current-doc-dest (rustdoc-current-project-doc-destination))
-         (path (concat current-doc-dest "/" (alist-get 'path name-and-path)))
+         (crate-subpath (concat current-doc-dest "/" (alist-get 'crate-subpath name-and-path)))
          (regex (if current-prefix-arg
                     (progn
                       (setq current-prefix-arg nil)
                       "^\\* [^-]\*")
                   "\\* [^-]\*"))
         (search-term (concat regex (seq-reduce (lambda (acc s)
-                                                    (concat acc ".*" s)) (split-string search-term " ") "")) )) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
+                                                    (concat acc ".*" s)) (split-string search-term " ") "")))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
     (when lsp-mode
       (setq rustdoc-current-project (lsp-workspace-root)))
     (unless (file-directory-p rustdoc-save-location)
@@ -131,22 +131,16 @@ Level 1 headers are things like struct or enum names."
       (sleep-for 3))
     (unless (file-directory-p current-doc-dest)
       (rustdoc-create-project-dir))
-    (message "path: %s" path)
-    (if (file-directory-p path)
-        (helm-ag
-             path
-             search-term)
+    (if (file-directory-p crate-subpath) ; In some cases we can infer parts of the filepath from the crate name.
+                                         ; E.g std::option::Option is in the folder std/option. If we infer a path and it exists in the filesystem, we run the search in there instead.
+                                        ; Some filepaths can not be inferred properly, seemingly because of https://github.com/rust-lang/rust/issues/21934
+        (helm-ag crate-subpath search-term)
       (helm-ag current-doc-dest search-term))))
-
-(defun rustdoc--search-dir (path symbol)
-  "Search PATH for SYMBOL, where PATH is a subdir to current doc destination."
-  (helm-ag (concat (rustdoc-current-project-doc-destination) "/" path) symbol))
 
 ;;;###autoload
 (defun rustdoc-current-project-doc-destination ()
   "The location of the documentation for the last seen project."
     (concat rustdoc-save-location "/" (file-name-nondirectory (directory-file-name (file-name-directory (concat rustdoc-current-project "/"))))))
-
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
@@ -213,16 +207,17 @@ Level 1 headers are things like struct or enum names."
                                                               (lsp--make-request "textDocument/hover")
                                                               (lsp--send-request)
                                                               (lsp:hover-contents))))))
+           (name (thing-at-point 'symbol t))
            (full-symbol-name (concat
                               (cond
                                ((string-prefix-p "core" lsp-info) (concat "std" (seq-drop lsp-info 4)))
                                ((string-prefix-p "alloc" lsp-info) (concat "std" (seq-drop lsp-info 5)))
                                (t lsp-info))
-                              "::" (thing-at-point 'symbol t)))
+                              "::" name))
            (filepath (reduce (lambda (path p)
                                (concat path "/" p))
                              (butlast (split-string full-symbol-name "::")))))
-      `((name . ,full-symbol-name) (path . ,filepath)))))
+      `((full-name . ,full-symbol-name) (path . ,filepath) (name . ,name)))))
 
 ;;;###autoload
 (define-minor-mode rustdoc-mode
