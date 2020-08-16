@@ -112,13 +112,12 @@ Level 1 headers are things like struct or enum names."
             nil
             nil
             (alist-get 'name thing-at-point)))))
-  ; These are just general settings that should be used when making helm-ag work with ripgrep.
+  ; These helm-ag settings are to make it work properly with ripgrep.
   (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number")
          (helm-ag-fuzzy-match t)
          (helm-ag-success-exit-status '(0 2))
          (thing-at-point-info (rustdoc--thing-at-point))
          (name (alist-get 'name thing-at-point-info))
-         (current-doc-dest (rustdoc-current-project-doc-destination))
          (search-dir (alist-get 'search-dir thing-at-point-info))
          ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only 1 * at the beginning of the line.
          (regex (if current-prefix-arg
@@ -134,16 +133,16 @@ Level 1 headers are things like struct or enum names."
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
       (sleep-for 3))
-    (unless (file-directory-p current-doc-dest)
+    (unless (file-directory-p (rustdoc-current-project-doc-destination))
       (rustdoc-create-project-dir))
     (helm-ag search-dir search-term)))
 
 (defun rustdoc--find-deepest-dir (path)
-  "After inferring PATH from a crate name, not all folders might exist.
-This finds the deepest existing directory in PATH and returns it.
-In some cases we can infer parts of the filepath from the crate name.
-E.g std::option::Option is in the folder std/option. If we infer a path and it exists in the filesystem, we run the search in there instead.
-Some filepaths can not be inferred properly, seemingly because of https://github.com/rust-lang/rust/issues/21934"
+  "Find the deepest existing and non-empty directory parent of PATH.
+We can sometimes infer the filepath from the crate name.
+E.g the enum std::option::Option is in the folder std/option.
+Some filepaths can not be inferred properly, seemingly because of URL `https://github.com/rust-lang/rust/issues/21934'.
+In these cases, the deepest dir will be the current project dir."
       (if (and (file-exists-p path) (file-directory-p path) (not (f-empty-p path)))
         path
         (rustdoc--find-deepest-dir (f-slash (f-dirname path)))))
