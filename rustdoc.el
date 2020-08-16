@@ -7,7 +7,7 @@
 ;; URL: https://github.com/samhedin/rustdoc
 ;; Version: 0.5
 ;; Keywords: docs languages
-;; Package-Requires: ((emacs "25.1") (helm-ag "0.62"))
+;; Package-Requires: ((emacs "26.1") (helm-ag "0.62"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -79,7 +79,6 @@ All projects and std by default, otherwise last open project and std.")
                             (,rustdoc-lua-filter () ,(concat rustdoc-source-repo
                                                              "filter.lua"))))
 
-;;;###autoload
 (defun rustdoc--install-resources ()
   "Install or update the rustdoc resources."
   (dolist (resource rustdoc-resources)
@@ -129,7 +128,7 @@ Level 1 headers are things like struct or enum names."
                   "^\\*+ [^-(<]*"))
         (regexed-search-term (concat regex (seq-reduce (lambda (acc s)
                                                     (concat acc "[^-(<]*" s)) (split-string search-term " ") "")))) ; This turns a search for `enum option' into `enum.*option', which lets there be chars between the terms
-    (update-current-project)
+    (rustdoc--update-current-project)
     (unless (file-directory-p rustdoc-save-loc)
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
@@ -138,7 +137,8 @@ Level 1 headers are things like struct or enum names."
       (rustdoc-create-project-dir))
     (helm-ag search-dir regexed-search-term)))
 
-(defun update-current-project ()
+(defun rustdoc--update-current-project ()
+"Update `rustdoc-current-project' if appropriate."
   (when (and lsp-mode (derived-mode-p 'rust-mode 'rustic-mode))
     (setq rustdoc-current-project (lsp-workspace-root))))
 
@@ -146,13 +146,13 @@ Level 1 headers are things like struct or enum names."
   "Find the deepest existing and non-empty directory parent of PATH.
 We can sometimes infer the filepath from the crate name.
 E.g the enum std::option::Option is in the folder std/option.
-Some filepaths can not be inferred properly, seemingly because of URL `https://github.com/rust-lang/rust/issues/21934'.
+Some filepaths can not be inferred properly, seemingly because of
+URL `https://github.com/rust-lang/rust/issues/21934'.
 In these cases, the deepest dir will be the current project dir."
       (if (and (file-exists-p path) (file-directory-p path) (not (f-empty-p path)))
         path
         (rustdoc--deepest-dir (f-slash (f-dirname path)))))
 
-;;;###autoload
 (defun rustdoc--project-doc-dest ()
   "The location of the documentation for the current or last seen project.
 If the user has not visited a project, returns the main doc directory."
@@ -192,7 +192,7 @@ If the user has not visited a project, returns the main doc directory."
                ;;        we'll have to figure out a way to coerce `<crate>-<version>`
                ;;        strings out of cargo, or just parse the Cargo.toml file, but
                ;;        then we'd have to review different parsing solutions.
-               (finish-func (lambda (p)
+               (finish-func (lambda (_p)
                               (message (format "Finished converting docs for %s" rustdoc-current-project)))))
 
           (rustdoc-create-project-dir)
@@ -214,12 +214,11 @@ If the user has not visited a project, returns the main doc directory."
   (async-start-process
    "*rustdoc-std-conversion*"
    rustdoc-convert-prog
-   (lambda (p) (message "Finished converting docs for std"))
+   (lambda (_p) (message "Finished converting docs for std"))
    "std"))
 
-;;;###autoload
 (defun rustdoc--thing-at-point ()
-  "Returns info about thing-at-point. If thing-at-point is nil, return defaults."
+  "Return info about `thing-at-point'. If `thing-at-point' is nil, return defaults."
   (if-let ((active lsp-mode)
            (lsp-content (-some->> (lsp--text-document-position-params)
                                          (lsp--make-request "textDocument/hover")
@@ -253,7 +252,7 @@ If the user has not visited a project, returns the main doc directory."
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-#") 'rustdoc-search)
             map)
-  (update-current-project))
+  (rustdoc--update-current-project))
 
 (dolist (mode '(rust-mode-hook rustic-mode-hook org-mode-hook))
   (add-hook mode 'rustdoc-mode))
