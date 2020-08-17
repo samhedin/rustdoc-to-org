@@ -132,9 +132,13 @@ Level 1 headers are things like struct or enum names."
                       ;; If current-prefix-arg is not set to nil, helm-ag will pick up the prefix arg too and do funny business.
                       (setq current-prefix-arg nil)
                       "^\\*")
-                  "^(?!.*impl)^\\*+")) ; Do not match if it's an impl, type of an argument or return type from a function.
+                  "^(?!.*impl)^\\*+")) ; Do not match if it's an impl
          ;; This seq-reduce turns `enum option' into (kind of) `enum.*option', which lets there be chars between the searched words
          (regexed-search-term (concat regex
+                                        ; Regex explanation
+                                        ; `-' => Do not match if a return type. A search for Option should not show is_some -> Option
+                                        ; `(' => Do not match if it's an argument name.
+                                        ; `<' => Do not match if it's a generic type arg
                                       (seq-reduce (lambda (acc s)
                                                     (concat acc "[^-(<]*" s))
                                                   (split-string search-term " ")
