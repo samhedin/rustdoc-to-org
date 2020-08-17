@@ -7,7 +7,7 @@
 ;; URL: https://github.com/samhedin/rustdoc-to-org
 ;; Version: 0.5
 ;; Keywords: docs languages
-;; Package-Requires: ((emacs "26.1") (helm-ag "0.62") (lsp "7.0.1") (f "0.20.0"))
+;; Package-Requires: ((emacs "26.1") (helm-ag "0.62") (lsp "7.0") (f "0.20.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
