@@ -43,7 +43,7 @@
 
 (require 'helm-ag)
 (require 'url)
-(require 'lsp)
+(require 'lsp-mode)
 (require 'f)
 
 (if (< emacs-major-version 27)
