@@ -33,6 +33,8 @@ There are two alternatives to install the package - with quelpa or manually. Ple
 ## Notes
 * We are waiting for an update to Pandoc that will make the generated documents prettier, it should be available soon https://github.com/jgm/pandoc/issues/6554
 * You should re-run `rustdoc-setup` once in a while, to update the pandoc filter.
+* If rustdoc does not find the documentation for something, the first thing to do is check the project's `target/doc` folder for the corresponding `.html-file`. If there is no file there, there is nothing for rustdoc to convert. If there is a file there, please create an issue!
+
 ## TODO
 
 * Figure out a way to get links working. All links point to .html files, they should be updated to point to .org files.
