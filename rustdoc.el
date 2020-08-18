@@ -211,23 +211,24 @@ If the user has not visited a project, returns the main doc directory."
       (progn
         (message "Converting documentation for %s "
                  rustdoc-current-project)
-        (call-process "cargo" nil nil nil "makedocs")
-        (let* ((docs-src (concat (file-name-as-directory rustdoc-current-project)
-                                 "target/doc"))
-               ;; FIXME: Many projects could share the same docs.
-               ;;        *However* that would have to be versioned, so
-               ;;        we'll have to figure out a way to coerce `<crate>-<version>`
-               ;;        strings out of cargo, or just parse the Cargo.toml file, but
-               ;;        then we'd have to review different parsing solutions.
-               (finish-func (lambda (_p)
-                              (message (format "Finished converting docs for %s"
-                                               rustdoc-current-project)))))
-          (rustdoc-create-project-dir)
-          (async-start-process "*rustdoc-convert*"
-                               rustdoc-convert-prog
-                               finish-func
-                               docs-src
-                               (rustdoc--project-doc-dest))))
+        (if (/= 0 (call-process "cargo" nil "*cargo-makedocs*" nil "makedocs"))
+            (message "cargo makedocs could not generate docs for the current package. See buffer *cargo-makedocs* for more info")
+          (let* ((docs-src (concat (file-name-as-directory rustdoc-current-project)
+                                   "target/doc"))
+                 ;; FIXME: Many projects could share the same docs.
+                 ;;        *However* that would have to be versioned, so
+                 ;;        we'll have to figure out a way to coerce `<crate>-<version>`
+                 ;;        strings out of cargo, or just parse the Cargo.toml file, but
+                 ;;        then we'd have to review different parsing solutions.
+                 (finish-func (lambda (_p)
+                                (message (format "Finished converting docs for %s"
+                                                 rustdoc-current-project)))))
+            (rustdoc-create-project-dir)
+            (async-start-process "rustdoc-convert"
+                                 rustdoc-convert-prog
+                                 finish-func
+                                 docs-src
+                                 (rustdoc--project-doc-dest)))))
     (message "Could not find project to convert. Visit a rust project first!")))
 
 ;;;###autoload
