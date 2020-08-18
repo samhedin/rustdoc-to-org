@@ -151,7 +151,10 @@ Level 1 headers are things like struct or enum names."
     ;; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default directory that only contains a symlink to std.
     (unless (file-directory-p (rustdoc--project-doc-dest))
       (rustdoc-create-project-dir))
-    (helm-ag search-dir regexed-search-term)))
+    (condition-case nil
+        (helm-ag search-dir regexed-search-term)
+      ;; If the search didn't turn anything up we re-run the search in the top level searchdir.
+      (error (helm-ag rustdoc-save-loc regexed-search-term)))))
 
 (defun rustdoc--update-current-project ()
   "Update `rustdoc-current-project' if editing a rust file, otherwise leave it."
