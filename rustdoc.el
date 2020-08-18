@@ -140,7 +140,7 @@ Level 1 headers are things like struct or enum names."
                                         ; `(' => Do not match if it's an argument name.
                                         ; `<' => Do not match if it's a generic type arg
                                       (seq-reduce (lambda (acc s)
-                                                    (concat acc "[^-(<]*" s))
+                                                    (concat acc "[^-\*(<]*" s))
                                                   (split-string search-term " ")
                                                   ""))))
     (rustdoc--update-current-project)
@@ -229,7 +229,7 @@ If the user has not visited a project, returns the main doc directory."
                                  finish-func
                                  docs-src
                                  (rustdoc--project-doc-dest)))))
-    (message "Could not find project to convert. Visit a rust project first!")))
+    (message "Could not find project to convert. Visit a rust project first! (Or activate rustdoc-mode if you are in one)")))
 
 ;;;###autoload
 (defun rustdoc-setup ()
