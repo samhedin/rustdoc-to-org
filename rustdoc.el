@@ -115,26 +115,7 @@ See `rustdoc-search' for more information."
                                     nil
                                     nil
                                     short-name))))
-  (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number --pcre2")
-         (helm-ag-fuzzy-match t)
-         (helm-ag-success-exit-status '(0 2))
-         ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only one * at the beginning of the line.
-         (regex (if current-prefix-arg
-                    (progn
-                      (setq current-prefix-arg nil)
-                      "^\\*")
-                  "^(?!.*impl)^\\*+"))  ; Do not match if it's an impl
-         ;; This seq-reduce turns `enum option' into (kind of) `enum.*option', which lets there be chars between the searched words
-         (regexed-search-term (concat regex
-                                        ; Regex explanation
-                                        ; `-' => Do not match if a return type. A search for Option should not show is_some -> Option
-                                        ; `(' => Do not match if it's an argument name.
-                                        ; `<' => Do not match if it's a generic type arg
-                                      (seq-reduce (lambda (acc s)
-                                                    (concat acc "[^-\*(<]*" s))
-                                                  (split-string search-term " ")
-                                                  ""))))
-    (helm-ag rustdoc-save-loc regexed-search-term)))
+  (rustdoc-search search-term t))
 
 
 ;;;###autoload
@@ -161,10 +142,11 @@ it doesn't manage to find what you're looking for, try `rustdoc-dumb-search'."
          (thing-at-point (rustdoc--thing-at-point))
          (short-name (alist-get 'short-name thing-at-point))
          ;; If the user did not accept the default search suggestion, we should not search in that suggestion's directory.
-         (search-dir (or arg-directory
-                         (if (string-equal short-name search-term)
-                             (alist-get 'search-dir thing-at-point)
-                           (rustdoc--project-doc-dest))))
+         (search-dir
+          (cond
+           (root rustdoc-save-loc)
+           ((string-equal short-name search-term) (alist-get 'search-dir thing-at-point))
+           (t (rustdoc--project-doc-dest))))
          ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only one * at the beginning of the line.
          (regex (if current-prefix-arg
                     (progn
