@@ -281,7 +281,7 @@ If the user has not visited a project, returns the main doc directory."
                               (split-string (gethash "value" lsp-content)))
                          (setq short-name (concat "primitive "
                                                   (gethash "value" lsp-content)))))
-            ;; If short-name was `Option', long-name would be `std::option::Option'
+           ;; If short-name was `Option', long-name would be `std::option::Option'
            (long-name (concat (cond
                                ((string-prefix-p "core" lsp-info)
                                 (concat "std"
@@ -295,8 +295,8 @@ If the user has not visited a project, returns the main doc directory."
            (search-dir (rustdoc--deepest-dir (concat (rustdoc--project-doc-dest)
                                                      "/"
                                                      (seq-reduce (lambda (path p)
-                                                               (concat path "/" p))
-                                                             (split-string long-name "::") "")))))
+                                                                   (concat path "/" p))
+                                                                 (split-string long-name "::") "")))))
       `((search-dir . ,search-dir)
         (short-name . ,short-name))
     `((search-dir . ,(rustdoc--project-doc-dest))
@@ -308,10 +308,10 @@ If the user has not visited a project, returns the main doc directory."
   :lighter " browse rust documentation"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-#") 'rustdoc-search)
-            map)(rustdoc--update-current-project))
-
-(dolist (mode '(rust-mode-hook rustic-mode-hook org-mode-hook))
-  (add-hook mode 'rustdoc-mode))
+            map)
+  (dolist (mode '(rust-mode-hook rustic-mode-hook org-mode-hook))
+    (add-hook mode 'rustdoc-mode))
+  (rustdoc--update-current-project))
 
 (provide 'rustdoc)
 
