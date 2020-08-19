@@ -104,12 +104,50 @@ All projects and std by default, otherwise last open project and std.")
       (x (error "Invalid resource spec: %s" x)))))
 
 ;;;###autoload
-(defun rustdoc-search (search-term)
+(defun rustdoc-dumb-search (search-term)
+  "Search all projects and std for SEARCH-TERM.
+Use this when `rustdoc-search' does not find what you're looking for.
+Add the prefix command to only search level 1 headers.
+See `rustdoc-search' for more information."
+  (interactive (let ((short-name (alist-get 'short-name
+                                            (rustdoc--thing-at-point))))
+                 (list (read-string (format "search term, default %s: " short-name)
+                                    nil
+                                    nil
+                                    short-name))))
+  (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number --pcre2")
+         (helm-ag-fuzzy-match t)
+         (helm-ag-success-exit-status '(0 2))
+         ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only one * at the beginning of the line.
+         (regex (if current-prefix-arg
+                    (progn
+                      (setq current-prefix-arg nil)
+                      "^\\*")
+                  "^(?!.*impl)^\\*+"))  ; Do not match if it's an impl
+         ;; This seq-reduce turns `enum option' into (kind of) `enum.*option', which lets there be chars between the searched words
+         (regexed-search-term (concat regex
+                                        ; Regex explanation
+                                        ; `-' => Do not match if a return type. A search for Option should not show is_some -> Option
+                                        ; `(' => Do not match if it's an argument name.
+                                        ; `<' => Do not match if it's a generic type arg
+                                      (seq-reduce (lambda (acc s)
+                                                    (concat acc "[^-\*(<]*" s))
+                                                  (split-string search-term " ")
+                                                  ""))))
+    (helm-ag rustdoc-save-loc regexed-search-term)))
+
+
+;;;###autoload
+(defun rustdoc-search (search-term &optional root)
   "Search the rust documentation for SEARCH-TERM.
 Only searches in headers (structs, functions, traits, enums, etc)
 to limit the number of results.
 To limit search results to only level 1 headers, add the prefix command `C-u'.
-Level 1 headers are things like struct or enum names."
+Level 1 headers are things like struct or enum names.
+if ROOT is non-nil the search is performed from the root dir.
+This function tries to be smart and limits the search results
+as much as possible. If it ends up being so smart that
+it doesn't manage to find what you're looking for, try `rustdoc-dumb-search'."
   (interactive (let ((short-name (alist-get 'short-name
                                             (rustdoc--thing-at-point))))
                  (list (read-string (format "search term, default %s: " short-name)
@@ -123,16 +161,17 @@ Level 1 headers are things like struct or enum names."
          (thing-at-point (rustdoc--thing-at-point))
          (short-name (alist-get 'short-name thing-at-point))
          ;; If the user did not accept the default search suggestion, we should not search in that suggestion's directory.
-         (search-dir (if (string-equal short-name search-term)
-                         (alist-get 'search-dir thing-at-point)
-                       (rustdoc--project-doc-dest)))
+         (search-dir (or arg-directory
+                         (if (string-equal short-name search-term)
+                             (alist-get 'search-dir thing-at-point)
+                           (rustdoc--project-doc-dest))))
          ;; If the prefix arg is provided, we only search for level 1 headers by making sure that there is only one * at the beginning of the line.
          (regex (if current-prefix-arg
                     (progn
                       ;; If current-prefix-arg is not set to nil, helm-ag will pick up the prefix arg too and do funny business.
                       (setq current-prefix-arg nil)
                       "^\\*")
-                  "^(?!.*impl)^\\*+")) ; Do not match if it's an impl
+                  "^(?!.*impl)^\\*+"))  ; Do not match if it's an impl
          ;; This seq-reduce turns `enum option' into (kind of) `enum.*option', which lets there be chars between the searched words
          (regexed-search-term (concat regex
                                         ; Regex explanation
@@ -148,7 +187,7 @@ Level 1 headers are things like struct or enum names."
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
       (sleep-for 3))
-    ;; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default directory that only contains a symlink to std.
+    ;; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default arg-directory that only contains a symlink to std.
     (unless (file-directory-p (rustdoc--project-doc-dest))
       (rustdoc-create-project-dir))
     (condition-case nil
@@ -163,7 +202,7 @@ Level 1 headers are things like struct or enum names."
     (setq rustdoc-current-project (lsp-workspace-root))))
 
 (defun rustdoc--deepest-dir (path)
-  "Find the deepest existing and non-empty directory parent of PATH.
+  "Find the deepest existing and non-empty arg-directory parent of PATH.
 We can sometimes infer the filepath from the crate name.
 E.g the enum std::option::Option is in the folder std/option.
 Some filepaths can not be inferred properly, seemingly because of
@@ -185,7 +224,7 @@ If the user has not visited a project, returns the main doc directory."
 
 ;;;###autoload
 (defun rustdoc-create-project-dir ()
-  "Create a rustdoc directory for the current project. Link with std."
+  "Create a rustdoc arg-directory for the current project. Link with std."
   (let* ((link-tgt (concat (file-name-as-directory (rustdoc--xdg-data-home))
                            "emacs/rustdoc/std"))
          (link-name (concat (rustdoc--project-doc-dest)
@@ -273,9 +312,9 @@ If the user has not visited a project, returns the main doc directory."
                               short-name))
            (search-dir (rustdoc--deepest-dir (concat (rustdoc--project-doc-dest)
                                                      "/"
-                                                     (reduce (lambda (path p)
+                                                     (seq-reduce (lambda (path p)
                                                                (concat path "/" p))
-                                                             (split-string long-name "::"))))))
+                                                             (split-string long-name "::") "")))))
       `((search-dir . ,search-dir)
         (short-name . ,short-name))
     `((search-dir . ,(rustdoc--project-doc-dest))
