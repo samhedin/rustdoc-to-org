@@ -169,7 +169,7 @@ it doesn't manage to find what you're looking for, try `rustdoc-dumb-search'."
       (rustdoc-setup)
       (message "Running first time setup. Please re-run your search once conversion has completed.")
       (sleep-for 3))
-    ;; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default arg-directory that only contains a symlink to std.
+    ;; If the user has not run `rustdoc-convert-current-package' in the current project, we create a default directory that only contains a symlink to std.
     (unless (file-directory-p (rustdoc--project-doc-dest))
       (rustdoc-create-project-dir))
     (condition-case nil

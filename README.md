@@ -25,6 +25,7 @@ Rustdoc is not on melpa, but you can install it from here with your package mana
 
 ## Usage
 
+* Enable `rustdoc-mode`.
 * Run `M-x rustdoc-setup` to download files that rustdoc needs to convert rust documentation and also convert `std`.
 * You can now convert package-specific documentation with `M-x rustdoc-convert-current-package`
 * Search the org files with `rustdoc-search` (bound to `C-#` by default) if you are in `Rust mode`, `Rustic mode` or `Org mode`. If you hover over a symbol when you invoke the command, `rustdoc-search` will insert a default value.
