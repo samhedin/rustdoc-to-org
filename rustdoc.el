@@ -107,7 +107,7 @@ All projects and std by default, otherwise last open project and std.")
 (defun rustdoc-dumb-search (search-term)
   "Search all projects and std for SEARCH-TERM.
 Use this when `rustdoc-search' does not find what you're looking for.
-Add the prefix command to only search level 1 headers.
+Add `universal-argument' to only search level 1 headers.
 See `rustdoc-search' for more information."
   (interactive (let ((short-name (alist-get 'short-name
                                             (rustdoc--thing-at-point))))
@@ -123,7 +123,7 @@ See `rustdoc-search' for more information."
   "Search the rust documentation for SEARCH-TERM.
 Only searches in headers (structs, functions, traits, enums, etc)
 to limit the number of results.
-To limit search results to only level 1 headers, add the prefix command `C-u'.
+To limit search results to only level 1 headers, add `universal-argument'
 Level 1 headers are things like struct or enum names.
 if ROOT is non-nil the search is performed from the root dir.
 This function tries to be smart and limits the search results
