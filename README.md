@@ -16,8 +16,8 @@ Installation is somewhat annoying at the moment. However, most of these should n
 
 ### The package
 
-There are two alternatives to install the package - with quelpa or manually. Please make an issue if either stops working, as rustdoc is currently changing rapidly.
-
+Rustdoc is not on melpa, but you can install it from here with your package manager of choice or manually. Please make an issue if something stops working, as rustdoc is currently changing rapidly.
+* With [straight.el](https://github.com/raxod502/straight.el#the-recipe-format)
 * With quelpa: `(quelpa '(rustdoc :fetcher github :repo "samhedin/rustdoc-to-org"))`
 * Manually
     * Install helm-ag from MELPA with <kbd>M-x package-install [RET] helm-ag [RET]</kbd> https://github.com/bridgesense/emacs-helm-ag#installation
