@@ -136,7 +136,9 @@ it doesn't manage to find what you're looking for, try `rustdoc-dumb-search'."
                                     nil
                                     short-name))))
   ;; These helm-ag settings are to make it work properly with ripgrep.
-  (let* ((helm-ag-base-command "rg -L --smart-case --no-heading --color=never --line-number --pcre2")
+  (let* ((helm-ag-base-command (if rustdoc-current-project ; If the user has not visited a project the search will be done from the doc root, in which case we should not follow symlinks.
+                                     "rg -L --smart-case --no-heading --color=never --line-number --pcre2"
+                                   "rg --smart-case --no-heading --color=never --line-number --pcre2"))
          (helm-ag-fuzzy-match t)
          (helm-ag-success-exit-status '(0 2))
          (thing-at-point (rustdoc--thing-at-point))
