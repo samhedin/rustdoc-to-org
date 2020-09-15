@@ -1,3 +1,7 @@
+# Rustdoc has moved!
+Rustdoc now comes with rustic, and future development will happen in that repo. Join us there!
+https://github.com/brotzeit/rustic
+
 # Rustdoc to org
 A Pandoc filter that converts rust documentation to .org-files, and a minor mode to go with!
 ![Demo with helm ag](demo.gif)
