@@ -1,5 +1,6 @@
 # Rustdoc has moved!
 Rustdoc now comes with [rustic](https://github.com/brotzeit/rustic), and future development will happen in that repo. Join us there!
+
 In rustic, this feature goes under the name *rustic-doc*: https://github.com/brotzeit/rustic#inline-documentation
 
 # Rustdoc to org
