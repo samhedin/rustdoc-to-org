@@ -1,7 +1,7 @@
 # Rustdoc has moved!
 Rustdoc now comes with [rustic](https://github.com/brotzeit/rustic), and future development will happen in that repo. Join us there!
 
-In rustic, this feature goes under the name *rustic-doc*: https://github.com/brotzeit/rustic#inline-documentation
+In rustic, this feature goes under the name *rustic-doc*: https://github.com/brotzeit/rustic#rust-docs-in-org-mode
 
 # Rustdoc to org
 A Pandoc filter that converts rust documentation to .org-files, and a minor mode to go with!
